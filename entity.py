@@ -142,6 +142,7 @@ class Item(Entity):
         consumable: Optional[Consumable] = None,
         equippable: Optional[Equippable] = None,
         magicable: Optional[Magic] = None,
+        token: Optional[Token] = None,
     ):
         super().__init__(
             x=x,
@@ -167,3 +168,6 @@ class Item(Entity):
 
         if self.magicable:
             self.magicable.parent = self
+
+
+        self.token = token

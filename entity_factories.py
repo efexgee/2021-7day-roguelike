@@ -5,6 +5,7 @@ from components.fighter import Fighter
 from components.inventory import Inventory
 from components.level import Level
 from components.magic import Magic
+from components.magic.token import *
 from entity import Actor, Item
 
 
@@ -44,6 +45,7 @@ token = Item(
     char=".",
     color=(207, 63, 255),
     name="Token",
+    token=BeamOf(),
 )
 
 spell_book = Item(
