@@ -1,2 +1,6 @@
 # 2021-7day-roguelike
-Roguelike project inspired by The 7DRL Challenge (https://7drl.com/)
+
+This is a modification of the code from *Yet Another Roguelike Tutorial - Written in Python 3 and TCOD* by TStand90.
+
+Tutorial: http://rogueliketutorials.com/tutorials/tcod/v2/
+Code: https://github.com/TStand90/tcod_tutorial_v2
