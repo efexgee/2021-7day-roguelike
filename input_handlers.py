@@ -391,6 +391,8 @@ class InventoryActivateHandler(InventoryEventHandler):
             return item.consumable.get_action(self.engine.player)
         elif item.equippable:
             return actions.EquipAction(self.engine.player, item)
+        elif item.magicable:
+            return item.magicable.get_action(self.engine.player)
         else:
             return None
 
