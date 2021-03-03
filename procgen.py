@@ -203,6 +203,9 @@ def generate_dungeon(
         dungeon.tiles[center_of_last_room] = tile_types.down_stairs
         dungeon.downstairs_location = center_of_last_room
 
+        #FXG Hardcode in a fire tile
+        dungeon.tiles[(center_of_last_room[0] + 1, center_of_last_room[1])] = tile_types.fire
+
         # Finally, append the new room to the list.
         rooms.append(new_room)
 

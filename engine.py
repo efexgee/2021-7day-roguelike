@@ -25,6 +25,13 @@ class Engine:
         self.mouse_location = (0, 0)
         self.player = player
 
+    def check_environment_interactions(self) -> None:
+        for actor in set(self.game_map.actors):
+            #FXG This does not work
+            #if self.game_map.tiles["fire"][actor.x, actor.y]:
+            #    actor.fighter.take_damage(10)
+            pass
+
     def handle_enemy_turns(self) -> None:
         for entity in set(self.game_map.actors) - {self.player}:
             if entity.ai:
