@@ -191,10 +191,18 @@ def generate_dungeon(
         if len(rooms) == 0:
             # The first room, where the player starts.
             player.place(*new_room.center, dungeon)
+
+            #FXG Hardcode some damage tiles for testing
+            (player_start_x, player_start_y) = new_room.center
+            print(f"player_start_x={player_start_x}, player_start_y={player_start_y}")
+            dungeon.tiles[(slice(player_start_x-2, player_start_x+3), player_start_y-1)] = tile_types.fire
+            dungeon.tiles[player_start_x - 1, slice(player_start_y, player_start_y+3)] = tile_types.acid
+
         else:  # All rooms after the first.
             # Dig out a tunnel between this room and the previous one.
             for x, y in tunnel_between(rooms[-1].center, new_room.center):
-                dungeon.tiles[x, y] = tile_types.floor
+                if (tile_types.TileLabel(dungeon.tiles[x,y]["label"]).name == "Wall"):
+                    dungeon.tiles[x, y] = tile_types.floor
 
             center_of_last_room = new_room.center
 
@@ -205,9 +213,5 @@ def generate_dungeon(
 
         # Finally, append the new room to the list.
         rooms.append(new_room)
-
-    #FXG Hardcode some damage tiles for testing
-    dungeon.tiles[(center_of_last_room[0] + 1, center_of_last_room[1])] = tile_types.fire
-    dungeon.tiles[(center_of_last_room[0] - 1, center_of_last_room[1])] = tile_types.acid
 
     return dungeon

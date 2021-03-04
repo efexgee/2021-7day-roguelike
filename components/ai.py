@@ -23,9 +23,10 @@ class BaseAI(Action):
         """
         # Copy the walkable array.
         cost = np.array(self.entity.gamemap.tiles["walkable"], dtype=np.int8)
+        cost += self.entity.gamemap.tiles["damage"] * 10
 
         for entity in self.entity.gamemap.entities:
-            # Check that an enitiy blocks movement and the cost isn't zero (blocking.)
+            # Check that an entity blocks movement and the cost isn't zero (blocking.)
             if entity.blocks_movement and cost[entity.x, entity.y]:
                 # Add to the cost of a blocked position.
                 # A lower number means more enemies will crowd behind each other in
@@ -111,5 +112,5 @@ class ConfusedEnemy(BaseAI):
             self.turns_remaining -= 1
 
             # The actor will either try to move or attack in the chosen random direction.
-            # Its possible the actor will just bump into the wall, wasting a turn.
+            # It's possible the actor will just bump into the wall, wasting a turn.
             return BumpAction(self.entity, direction_x, direction_y,).perform()
