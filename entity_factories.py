@@ -16,6 +16,7 @@ player = Actor(
     ai_cls=HostileEnemy,
     equipment=Equipment(),
     fighter=Fighter(hp=30, base_defense=1, base_power=2),
+    magicable=Magic(),
     inventory=Inventory(capacity=26),
     level=Level(level_up_base=200),
 )
@@ -28,6 +29,7 @@ orc = Actor(
     equipment=Equipment(),
     fighter=Fighter(hp=10, base_defense=0, base_power=3),
     inventory=Inventory(capacity=0),
+    magicable=Magic(),
     level=Level(xp_given=35),
 )
 troll = Actor(
@@ -37,18 +39,7 @@ troll = Actor(
     ai_cls=HostileEnemy,
     equipment=Equipment(),
     fighter=Fighter(hp=16, base_defense=1, base_power=4),
+    magicable=Magic(),
     inventory=Inventory(capacity=0),
     level=Level(xp_given=100),
-)
-
-token = Item(
-    char=".",
-    color=(207, 63, 255),
-    name="Token",
-    token=BeamOf(),
-)
-
-spell_book = Item(
-    name="Spell Book",
-    magicable=Magic(),
 )

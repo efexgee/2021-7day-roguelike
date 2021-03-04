@@ -12,6 +12,8 @@ from actions import (
     BumpAction,
     PickupAction,
     WaitAction,
+    CastRandomSpellAction,
+    CastFireballSpellAction,
 )
 import color
 import exceptions
@@ -319,6 +321,7 @@ class InventoryEventHandler(AskUserEventHandler):
         they are.
         """
         super().on_render(console)
+
         number_of_items_in_inventory = len(self.engine.player.inventory.items)
 
         height = number_of_items_in_inventory + 2
@@ -352,7 +355,7 @@ class InventoryEventHandler(AskUserEventHandler):
 
                 is_equipped = self.engine.player.equipment.item_is_equipped(item)
 
-                item_string = f"({item_key}) {item.name}"
+                item_string = f"({item_key}) {item.name} ({item.count})"
 
                 if is_equipped:
                     item_string = f"{item_string} (E)"
@@ -554,6 +557,10 @@ class MainGameEventHandler(EventHandler):
             return CharacterScreenEventHandler(self.engine)
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
+        elif key == tcod.event.K_r:
+            action = CastRandomSpellAction(player)
+        elif key == tcod.event.K_f:
+            action = CastFireballSpellAction(player)
 
         # No valid key was pressed
         return action

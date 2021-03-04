@@ -98,6 +98,7 @@ class Actor(Entity):
         equipment: Equipment,
         fighter: Fighter,
         inventory: Inventory,
+        magicable: Optional[Magic] = None,
         level: Level,
     ):
         super().__init__(
@@ -124,6 +125,11 @@ class Actor(Entity):
         self.level = level
         self.level.parent = self
 
+        self.magicable = magicable
+
+        if self.magicable:
+            self.magicable.parent = self
+
     @property
     def is_alive(self) -> bool:
         """Returns True as long as this actor can perform actions."""
@@ -141,8 +147,8 @@ class Item(Entity):
         name: str = "<Unnamed>",
         consumable: Optional[Consumable] = None,
         equippable: Optional[Equippable] = None,
-        magicable: Optional[Magic] = None,
         token: Optional[Token] = None,
+        count: Optional[int] = None
     ):
         super().__init__(
             x=x,
@@ -164,10 +170,9 @@ class Item(Entity):
         if self.equippable:
             self.equippable.parent = self
 
-        self.magicable = magicable
-
-        if self.magicable:
-            self.magicable.parent = self
-
+        if count is not None:
+            self.count = count
+        else:
+            self.count = 1
 
         self.token = token
