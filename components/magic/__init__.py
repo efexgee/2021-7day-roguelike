@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import copy
 
 from components.base_component import BaseComponent
 import color
@@ -11,10 +12,10 @@ if TYPE_CHECKING:
     from entity import Item
 
 class Context:
-    def __init__(self, caster, engine):
+    def __init__(self, caster, engine, target: Optional[(int, int)]):
         self.caster = caster
         self.engine = engine
-        self.target = None
+        self.supplied_target = target
 
 class Spell:
     def __init__(self, tokens, connections):
@@ -23,6 +24,16 @@ class Spell:
 
     def __str__(self):
         return ", ".join([t.name for t in self.tokens])
+
+    def needs_target(self) -> bool:
+        for token in self.tokens:
+            if isinstance(token, SpecificTarget):
+                return True
+        return False
+
+    def can_cast(self, inventory) -> bool:
+        # FIXME: Um, don't copy everything?
+        return self.prepare_from_inventory(copy.deepcopy(inventory)) is not None
 
     def prepare_from_inventory(self, inventory) -> Optional[PreparedSpell]:
         for token in self.tokens:
@@ -68,7 +79,19 @@ class Magic(BaseComponent):
     parent: Item
 
     def __init__(self):
-        pass
+        self.bump_spell = None
+        self.ranged_spell = Spell(
+            [
+                SpecificTarget(),
+                MadeOfWhatever("green globule", "fire"),
+                BallOf()
+            ],
+            [
+                [],
+                [],
+                [1, 0],
+            ]
+        )
 
     def cast_random_spell(self) -> Optional[ActionOrHandler]:
         spell = random_spell_from_inventory(self.parent.inventory)
@@ -83,10 +106,15 @@ class Magic(BaseComponent):
                 "You don't have the right tokens to make a spell", color.magic
             )
 
-    def cast_spell(self, spell: Spell) -> Optional[ActionOrHandler]:
+
+    def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
+        if self.bump_spell is not None:
+            self.cast_spell(self.bump_spell, (target.x, target.y))
+
+    def cast_spell(self, spell: Spell, target: Optional[Actor] = None) -> Optional[ActionOrHandler]:
         spell = spell.prepare_from_inventory(self.parent.inventory)
         if spell is not None:
-            context = Context(self.parent, self.engine)
+            context = Context(self.parent, self.engine, target)
             self.engine.message_log.add_message(
                 "You cast a spell", color.magic
             )

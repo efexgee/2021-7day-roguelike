@@ -17,6 +17,9 @@ import input_handlers
 from components.magic.token import *
 from entity import Item
 
+from components.magic import Spell
+from components.magic.token import *
+
 
 # Load the background image and remove the alpha channel.
 background_image = tcod.image.load("menu_background.png")[:, :, :3]
@@ -32,13 +35,26 @@ def new_game() -> Engine:
     max_rooms = 30
 
     player = copy.deepcopy(entity_factories.player)
-
+    player.magicable.bump_spell = Spell(
+            [
+                SpecificTarget(),
+                MadeOfWhatever("red globule", "poop"),
+                BeamOf(),
+                WithinRange(2),
+            ],
+            [
+                [],
+                [],
+                [1, 3],
+                [0]
+            ]
+        )
     all_tokens = [
-        AllObjects(),
+        AllActors(),
         SpecificTarget(),
         TheCaster(),
         OneAtRandom(),
-        JustOrcs(),
+        WithinRange(10),
         MadeOfWhatever("red globule", "poop"),
         MadeOfWhatever("green globule", "fire"),
         MadeOfWhatever("black globule", "ice"),

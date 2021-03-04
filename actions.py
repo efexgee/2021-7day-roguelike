@@ -112,25 +112,14 @@ class CastRandomSpellAction(Action):
     def perform(self) -> None:
         self.caster.magicable.cast_random_spell()
 
-class CastFireballSpellAction(Action):
-    def __init__(self, entity: Actor):
+class CastSpellAction(Action):
+    def __init__(self, entity: Actor, spell: Spell, target: Optional[(int, int)]):
         self.caster = entity
+        self.spell = spell
+        self.target = target
 
     def perform(self) -> None:
-        self.caster.magicable.cast_spell(Spell(
-            [
-                AllObjects(),
-                OneAtRandom(),
-                MadeOfWhatever("green globule", "fire"),
-                BallOf()
-            ],
-            [
-                [],
-                [0],
-                [],
-                [2, 1],
-            ]
-        ))
+        self.caster.magicable.cast_spell(self.spell, self.target)
 
 
 class TakeStairsAction(Action):
@@ -179,23 +168,7 @@ class MeleeAction(ActionWithDirection):
         if not target:
             raise exceptions.Impossible("Nothing to attack.")
 
-        damage = self.entity.fighter.power - target.fighter.defense
-
-        attack_desc = f"{self.entity.name.capitalize()} attacks {target.name}"
-        if self.entity is self.engine.player:
-            attack_color = color.player_atk
-        else:
-            attack_color = color.enemy_atk
-
-        if damage > 0:
-            self.engine.message_log.add_message(
-                f"{attack_desc} for {damage} hit points.", attack_color
-            )
-            target.fighter.hp -= damage
-        else:
-            self.engine.message_log.add_message(
-                f"{attack_desc} but does no damage.", attack_color
-            )
+        self.entity.magicable.cast_bump_spell(target)
 
 
 class MovementAction(ActionWithDirection):

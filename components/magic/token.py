@@ -12,27 +12,38 @@ class Token:
     def process(self, context, *args):
         assert(False)
 
-class AllObjects(Token):
+class AllActors(Token):
     def __init__(self):
         super().__init__("grey shard", ["caster"], ["target"])
 
     def process(self, context):
-        return [o for o in context.engine.game_map.actors if o != context.caster]
+        return [(o.x, o.y) for o in context.engine.game_map.actors if o != context.caster and context.engine.game_map.visible[o.x, o.y]]
 
 class TheCaster(Token):
     def __init__(self):
         super().__init__("black shard", ["caster"], ["target"])
 
     def process(self, context):
-        return [context.caster]
+        return [(context.caster.x, context.castor.y)]
 
 class SpecificTarget(Token):
     def __init__(self):
         super().__init__("chalk shard", ["caster"], ["target"])
 
     def process(self, context):
-        if context.target:
-            return [context.target]
+        if context.supplied_target:
+            return [(context.supplied_target[0], context.supplied_target[1])]
+        else:
+            return []
+
+class WithinRange(Token):
+    def __init__(self, range):
+        super().__init__("emerald shard", ["target"], ["target"])
+        self.range = range
+
+    def process(self, context, targets):
+        if targets:
+            return [t for t in targets if context.caster.distance(*t) < self.range]
         else:
             return []
 
@@ -45,13 +56,6 @@ class OneAtRandom(Token):
             return sample(targets, k=1)
         else:
             return []
-
-class JustOrcs(Token):
-    def __init__(self):
-        super().__init__("green marble", ["target"], ["target"])
-
-    def process(self, context, targets):
-        return [t for t in targets if "Orc" in t.name]
 
 class MadeOfWhatever(Token):
     def __init__(self, name, material):
@@ -81,8 +85,10 @@ class BallOf(Token):
             elif material == "fire":
                 damage = 10
             for target in targets:
-                context.engine.message_log.add_message(f"A ball of {material} hits {target.name} dealing {damage} damage!")
-                target.fighter.take_damage(damage)
+                for actor in context.engine.game_map.actors:
+                    if actor.distance(target[0], target[1]) <= 3 and context.engine.game_map.visible[target]:
+                        context.engine.message_log.add_message(f"A ball of {material} hits {actor.name} dealing {damage} damage!")
+                        actor.fighter.take_damage(damage)
         else:
             context.engine.message_log.add_message("nothing happens")
 
@@ -92,8 +98,18 @@ class BeamOf(Token):
 
     def process(self, context, material, targets):
         if targets:
+            damage = 0
+            if material == "poop":
+                damage = 1
+            elif material == "fire":
+                damage = 10
             for target in targets:
-                context.engine.message_log.add_message(f"A beam of {material} hits {target.name}")
+                actor = context.engine.game_map.get_actor_at_location(target[0], target[1])
+                if actor is not None:
+                    context.engine.message_log.add_message(f"A beam of {material} hits {actor.name} dealing {damage} damage!")
+                    actor.fighter.take_damage(damage)
+                else:
+                    context.engine.message_log.add_message(f"A beam of {material} hits the ground, acomplishing nothing")
         else:
             context.engine.message_log.add_message("nothing happens")
 
