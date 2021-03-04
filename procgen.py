@@ -197,6 +197,8 @@ def generate_dungeon(
             print(f"player_start_x={player_start_x}, player_start_y={player_start_y}")
             dungeon.tiles[(slice(player_start_x-2, player_start_x+3), player_start_y-1)] = tile_types.fire
             dungeon.tiles[player_start_x - 1, slice(player_start_y, player_start_y+3)] = tile_types.acid
+            dungeon.tiles[player_start_x + 3, slice(player_start_y-2, player_start_y+3)] = tile_types.acid
+            dungeon.tiles[(slice(player_start_x-1, player_start_x+3), player_start_y+2)] = tile_types.acid
 
         else:  # All rooms after the first.
             # Dig out a tunnel between this room and the previous one.
