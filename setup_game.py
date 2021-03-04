@@ -14,6 +14,8 @@ from engine import Engine
 import entity_factories
 from game_map import GameWorld
 import input_handlers
+from components.magic.token import *
+from entity import Item
 
 
 # Load the background image and remove the alpha channel.
@@ -31,10 +33,34 @@ def new_game() -> Engine:
 
     player = copy.deepcopy(entity_factories.player)
 
-    spell_book = copy.deepcopy(entity_factories.spell_book)
-    spell_book.parent = player.inventory
-    player.inventory.items.append(spell_book)
-    player.equipment.toggle_equip(spell_book, add_message=False)
+    all_tokens = [
+        AllObjects(),
+        SpecificTarget(),
+        TheCaster(),
+        OneAtRandom(),
+        JustOrcs(),
+        MadeOfWhatever("red globule", "poop"),
+        MadeOfWhatever("green globule", "fire"),
+        MadeOfWhatever("black globule", "ice"),
+        MadeOfWhatever("puce globule", "lightning"),
+        MadeOfWhatever("steely globule", "knives"),
+        MadeOfWhatever("blue globule", "strong coffee"),
+        MadeOfWhatever("pink globule", "screaming elemental void"),
+        DoubleMaterial(),
+        BallOf(),
+        BeamOf(),
+    ]
+    for token in all_tokens:
+        token = copy.deepcopy(token)
+        token.parent = player.inventory
+        item = Item(
+            char = ".",
+            name = token.name,
+            count = 10,
+            token = token
+        )
+        player.inventory.items.append(item)
+
 
     engine = Engine(player=player)
 

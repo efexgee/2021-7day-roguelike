@@ -6,6 +6,9 @@ class Token:
         self.inputs = inputs
         self.outputs = outputs
 
+    def __eq__(self, other):
+        return self.name == other.name and set(self.inputs) == set(other.inputs) and set(self.outputs) == set(other.outputs)
+
     def process(self, context, *args):
         assert(False)
 

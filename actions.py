@@ -4,6 +4,8 @@ from typing import Optional, Tuple, TYPE_CHECKING
 
 import color
 import exceptions
+from components.magic import Spell
+from components.magic.token import *
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -102,6 +104,33 @@ class EquipAction(Action):
 class WaitAction(Action):
     def perform(self) -> None:
         pass
+
+class CastRandomSpellAction(Action):
+    def __init__(self, entity: Actor):
+        self.caster = entity
+
+    def perform(self) -> None:
+        self.caster.magicable.cast_random_spell()
+
+class CastFireballSpellAction(Action):
+    def __init__(self, entity: Actor):
+        self.caster = entity
+
+    def perform(self) -> None:
+        self.caster.magicable.cast_spell(Spell(
+            [
+                AllObjects(),
+                OneAtRandom(),
+                MadeOfWhatever("green globule", "fire"),
+                BallOf()
+            ],
+            [
+                [],
+                [0],
+                [],
+                [2, 1],
+            ]
+        ))
 
 
 class TakeStairsAction(Action):
