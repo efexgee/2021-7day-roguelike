@@ -16,6 +16,8 @@ class Context:
         self.caster = caster
         self.engine = engine
         self.supplied_target = target
+        self.attributes = dict()
+        self.dry_run = False
 
 class Spell:
     def __init__(self, tokens, connections):
@@ -30,6 +32,12 @@ class Spell:
             if isinstance(token, SpecificTarget):
                 return True
         return False
+
+    def attributes(self, caster, engine, target: Optional[(int, int)]):
+        context = Context(caster, engine, target)
+        context.dry_run = True
+        PreparedSpell(self).cast(context)
+        return context.attributes
 
     def can_cast(self, inventory) -> bool:
         # FIXME: Um, don't copy everything?
@@ -83,13 +91,15 @@ class Magic(BaseComponent):
         self.ranged_spell = Spell(
             [
                 SpecificTarget(),
+                Medium(),
                 MadeOfWhatever("green globule", "fire"),
                 BallOf()
             ],
             [
                 [],
                 [],
-                [1, 0],
+                [],
+                [2, 1, 0],
             ]
         )
 

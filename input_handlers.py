@@ -510,19 +510,20 @@ class AreaRangedAttackHandler(SelectIndexHandler):
 
         x, y = self.engine.mouse_location
 
-        fg = color.red
+        bg = color.valid_aoe
         if math.sqrt((x - self.source[0]) ** 2 + (y - self.source[1]) ** 2) > self.range:
-            fg = color.black
+            bg = color.invalid_aoe
 
-        # Draw a rectangle around the targeted area, so the player can see the affected tiles.
-        console.draw_frame(
-            x=x - self.radius - 1,
-            y=y - self.radius - 1,
-            width=self.radius ** 2,
-            height=self.radius ** 2,
-            fg=fg,
-            clear=False,
-        )
+        for dx in range(-self.radius, self.radius+1):
+            for dy in range(-self.radius, self.radius+1):
+                if math.sqrt(dx ** 2 + dy ** 2) < self.radius:
+                    tx = x+dx
+                    ty = y+dy
+                    if tx >= 0 and tx < console.width and ty >= 0 and ty < console.height:
+                        # TODO: Presumably there's a better way to do blending
+                        console.bg[tx, ty, 0] = max(0, min(255, console.bg[tx, ty, 0]+bg[0]))
+                        console.bg[tx, ty, 1] = max(0, min(255, console.bg[tx, ty, 1]+bg[1]))
+                        console.bg[tx, ty, 2] = max(0, min(255, console.bg[tx, ty, 2]+bg[2]))
 
     def on_index_selected(self, x: int, y: int) -> Optional[Action]:
         if math.sqrt((x - self.source[0]) ** 2 + (y - self.source[1]) ** 2) > self.range:
@@ -571,6 +572,7 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_f:
             if player.magicable.ranged_spell.can_cast(player.inventory):
                 if player.magicable.ranged_spell.needs_target():
+                    attributes = player.magicable.ranged_spell.attributes(player, self.engine, (player.x, player.y))
                     def callback(xy):
                         if not self.engine.game_map.visible[xy]:
                             self.engine.message_log.add_message("You cannot target an area that you cannot see.")
@@ -582,7 +584,7 @@ class MainGameEventHandler(EventHandler):
                         )
                     return AreaRangedAttackHandler(
                         self.engine,
-                        radius=3,
+                        radius=attributes.get("AOE_radius", 0),
                         range=10,
                         source=(player.x, player.y),
                         callback=callback,

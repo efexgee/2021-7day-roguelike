@@ -38,6 +38,7 @@ def new_game() -> Engine:
     player.magicable.bump_spell = Spell(
             [
                 SpecificTarget(),
+                Stupendous(),
                 MadeOfWhatever("red globule", "poop"),
                 BeamOf(),
                 WithinRange(2),
@@ -45,7 +46,8 @@ def new_game() -> Engine:
             [
                 [],
                 [],
-                [1, 3],
+                [],
+                [2, 1, 4],
                 [0]
             ]
         )
@@ -53,6 +55,10 @@ def new_game() -> Engine:
         AllActors(),
         SpecificTarget(),
         TheCaster(),
+        Small(),
+        Medium(),
+        Large(),
+        Stupendous(),
         OneAtRandom(),
         WithinRange(10),
         MadeOfWhatever("red globule", "poop"),

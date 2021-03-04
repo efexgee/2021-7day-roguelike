@@ -72,75 +72,93 @@ class DoubleMaterial(Token):
     def process(self, context, a, b):
         return f"{a} and {b}"
 
+class Small(Token):
+    def __init__(self):
+        super().__init__("sighing module", [], ["scale"])
+
+    def process(self, context):
+        return "small"
+
+class Medium(Token):
+    def __init__(self):
+        super().__init__("singing module", [], ["scale"])
+
+    def process(self, context):
+        return "medium"
+
+class Large(Token):
+    def __init__(self):
+        super().__init__("pooping module", [], ["scale"])
+
+    def process(self, context):
+        return "large"
+
+class Stupendous(Token):
+    def __init__(self):
+        super().__init__("dancing module", [], ["scale"])
+
+    def process(self, context):
+        return "stupendous"
 
 class BallOf(Token):
     def __init__(self):
-        super().__init__("silver rod", ["material", "target"], ["sink"])
+        super().__init__("silver rod", ["material", "scale", "target"], ["sink"])
 
-    def process(self, context, material, targets):
+    def process(self, context, material, scale, targets):
         if targets:
             damage = 0
             if material == "poop":
                 damage = 1
             elif material == "fire":
                 damage = 10
+            radius = 0
+            if scale == "small":
+                radius = 1
+            elif scale == "medium":
+                radius = 2
+            elif scale == "large":
+                radius = 4
+            elif scale == "stupendous":
+                radius = 12
+            context.attributes["base_damage"] = damage
+            context.attributes["AOE_radius"] = radius
             for target in targets:
                 for actor in context.engine.game_map.actors:
-                    if actor.distance(target[0], target[1]) <= 3 and context.engine.game_map.visible[target]:
-                        context.engine.message_log.add_message(f"A ball of {material} hits {actor.name} dealing {damage} damage!")
-                        actor.fighter.take_damage(damage)
-        else:
+                    if actor.distance(target[0], target[1]) <= radius and context.engine.game_map.visible[target]:
+                        if not context.dry_run:
+                            context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} dealing {damage} damage!")
+                            actor.fighter.take_damage(damage)
+        elif not context.dry_run:
             context.engine.message_log.add_message("nothing happens")
 
 class BeamOf(Token):
     def __init__(self):
-        super().__init__("copper rod", ["material", "target"], ["sink"])
+        super().__init__("copper rod", ["material", "scale", "target"], ["sink"])
 
-    def process(self, context, material, targets):
+    def process(self, context, material, scale, targets):
         if targets:
             damage = 0
             if material == "poop":
                 damage = 1
             elif material == "fire":
                 damage = 10
+            if scale == "small":
+                damage *= 1
+            elif scale == "medium":
+                damage *= 2
+            elif scale == "large":
+                damage *= 4
+            elif scale == "stupendous":
+                damage *= 10
+            context.attributes["base_damage"] = damage
+            context.attributes["AOE_radius"] = 0
             for target in targets:
                 actor = context.engine.game_map.get_actor_at_location(target[0], target[1])
                 if actor is not None:
-                    context.engine.message_log.add_message(f"A beam of {material} hits {actor.name} dealing {damage} damage!")
-                    actor.fighter.take_damage(damage)
-                else:
-                    context.engine.message_log.add_message(f"A beam of {material} hits the ground, acomplishing nothing")
-        else:
+                    if not context.dry_run:
+                        context.engine.message_log.add_message(f"A {scale} beam of {material} hits {actor.name} dealing {damage} damage!")
+                        actor.fighter.take_damage(damage)
+                elif not context.dry_run:
+                    context.engine.message_log.add_message(f"A {scale} beam of {material} hits the ground, acomplishing nothing")
+        elif not context.dry_run:
             context.engine.message_log.add_message("nothing happens")
-
-#class Age(Token):
-#    def __init__(self, name, age):
-#        self.age = age
-#        super().__init__(name, [], ["age"])
-#
-#    def process(self, context):
-#        return self.age
-#
-#class Animal(Token):
-#    def __init__(self, name, animal):
-#        self.animal = animal
-#        super().__init__(name, [], ["animal"])
-#
-#    def process(self, context):
-#        return self.animal
-#
-#class SummonableAnimal(Token):
-#    def __init__(self):
-#        super().__init__("dusty stone", ["animal", "age"], ["summonable"])
-#
-#    def process(self, context, animal, age):
-#        return f"{age} {animal}"
-#
-#class Summon(Token):
-#    def __init__(self):
-#        super().__init__("chrome ring", ["target", "summonable"], ["sink"])
-#
-#    def process(self, context, targets, summonable):
-#        for target in targets:
-#            context.world.objects.append(summonable)
-#            context.engine.message_log.add_message(f"{context.caster} summon a {summonable} near a {target}");
