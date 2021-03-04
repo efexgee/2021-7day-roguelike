@@ -9,6 +9,7 @@ class TileLabel(IntEnum):
     Wall = auto()
     Downstairs = auto()
     Fire = auto()
+    Acid = auto()
 
 # Tile graphics structured type compatible with Console.tiles_rgb.
 graphic_dt = np.dtype(
@@ -79,4 +80,12 @@ fire = new_tile(
     dark=(ord("^"), (220, 200, 130), (50, 50, 150)),
     light=(ord("^"), (255, 100, 0), (200, 180, 50)),
     damage=3,
+)
+acid = new_tile(
+    label=TileLabel.Acid,
+    walkable=True,
+    transparent=True,
+    dark=(ord("^"), (0, 200, 230), (50, 50, 150)),
+    light=(ord("^"), (0, 255, 100), (200, 180, 50)),
+    damage=5,
 )
