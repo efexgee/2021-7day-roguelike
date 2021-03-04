@@ -10,6 +10,7 @@ from tcod.map import compute_fov
 import exceptions
 from message_log import MessageLog
 import render_functions
+from tile_types import TileLabel
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -27,10 +28,10 @@ class Engine:
 
     def check_environment_interactions(self) -> None:
         for actor in set(self.game_map.actors):
-            #FXG This does not work
-            #if self.game_map.tiles["fire"][actor.x, actor.y]:
-            #    actor.fighter.take_damage(10)
-            pass
+            if self.game_map.tiles["damage"][actor.x, actor.y]:
+                damage = self.game_map.tiles["damage"][actor.x, actor.y]
+                self.message_log.add_message(f"{actor.name} is standing on some {TileLabel(self.game_map.tiles['label'][actor.x, actor.y]).name} and takes {damage} damage.")
+                actor.fighter.take_damage(damage)
 
     def handle_enemy_turns(self) -> None:
         for entity in set(self.game_map.actors) - {self.player}:
