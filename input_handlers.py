@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import math
 
 from typing import Callable, Optional, Tuple, TYPE_CHECKING, Union
 
@@ -13,7 +14,7 @@ from actions import (
     PickupAction,
     WaitAction,
     CastRandomSpellAction,
-    CastFireballSpellAction,
+    CastSpellAction,
 )
 import color
 import exceptions
@@ -394,8 +395,6 @@ class InventoryActivateHandler(InventoryEventHandler):
             return item.consumable.get_action(self.engine.player)
         elif item.equippable:
             return actions.EquipAction(self.engine.player, item)
-        elif item.magicable:
-            return item.magicable.get_action(self.engine.player)
         else:
             return None
 
@@ -494,11 +493,15 @@ class AreaRangedAttackHandler(SelectIndexHandler):
         self,
         engine: Engine,
         radius: int,
+        range: int,
+        source: (int, int),
         callback: Callable[[Tuple[int, int]], Optional[Action]],
     ):
         super().__init__(engine)
 
         self.radius = radius
+        self.range = range
+        self.source = source
         self.callback = callback
 
     def on_render(self, console: tcod.Console) -> None:
@@ -507,17 +510,24 @@ class AreaRangedAttackHandler(SelectIndexHandler):
 
         x, y = self.engine.mouse_location
 
-        # Draw a rectangle around the targeted area, so the player can see the affected tiles.
-        console.draw_frame(
-            x=x - self.radius - 1,
-            y=y - self.radius - 1,
-            width=self.radius ** 2,
-            height=self.radius ** 2,
-            fg=color.red,
-            clear=False,
-        )
+        bg = color.valid_aoe
+        if math.sqrt((x - self.source[0]) ** 2 + (y - self.source[1]) ** 2) > self.range:
+            bg = color.invalid_aoe
+
+        for dx in range(-self.radius, self.radius+1):
+            for dy in range(-self.radius, self.radius+1):
+                if math.sqrt(dx ** 2 + dy ** 2) < self.radius:
+                    tx = x+dx
+                    ty = y+dy
+                    if tx >= 0 and tx < console.width and ty >= 0 and ty < console.height:
+                        # TODO: Presumably there's a better way to do blending
+                        console.bg[tx, ty, 0] = max(0, min(255, console.bg[tx, ty, 0]+bg[0]))
+                        console.bg[tx, ty, 1] = max(0, min(255, console.bg[tx, ty, 1]+bg[1]))
+                        console.bg[tx, ty, 2] = max(0, min(255, console.bg[tx, ty, 2]+bg[2]))
 
     def on_index_selected(self, x: int, y: int) -> Optional[Action]:
+        if math.sqrt((x - self.source[0]) ** 2 + (y - self.source[1]) ** 2) > self.range:
+            return None
         return self.callback((x, y))
 
 
@@ -560,7 +570,31 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_r:
             action = CastRandomSpellAction(player)
         elif key == tcod.event.K_f:
-            action = CastFireballSpellAction(player)
+            if player.magicable.ranged_spell.can_cast(player.inventory):
+                if player.magicable.ranged_spell.needs_target():
+                    attributes = player.magicable.ranged_spell.attributes(player, self.engine, (player.x, player.y))
+                    def callback(xy):
+                        if not self.engine.game_map.visible[xy]:
+                            self.engine.message_log.add_message("You cannot target an area that you cannot see.")
+                            return
+                        return actions.CastSpellAction(
+                            player,
+                            player.magicable.ranged_spell,
+                            xy
+                        )
+                    return AreaRangedAttackHandler(
+                        self.engine,
+                        radius=attributes.get("AOE_radius", 0),
+                        range=10,
+                        source=(player.x, player.y),
+                        callback=callback,
+                    )
+                else:
+                    action = actions.CastSpellAction(player, player.magicable.ranged_spell, None)
+            else:
+                self.engine.message_log.add_message(
+                    "You don't have the right tokens to make a spell", color.magic
+                )
 
         # No valid key was pressed
         return action
