@@ -7,8 +7,12 @@ def random_spell_with_constraints(is_valid_fn, tokens=None):
         tokens = [t() for t in all_tokens()]
 
     spell = random_spell(tokens)
+    remaining_tries = 5000
     while not is_valid_fn(spell):
+        if remaining_tries <= 0:
+            return None
         spell = random_spell(tokens)
+        remaining_tries -= 1
     return spell
 
 
@@ -27,7 +31,10 @@ def random_spell(all_tokens):
     connections = []
     consumed = set()
 
-    def fill_inputs(token):
+    max_depth = 10
+    def fill_inputs(token, depth):
+         if depth > max_depth:
+            return False
          ids = []
          for input_type in token.inputs:
              target = None
@@ -40,13 +47,14 @@ def random_spell(all_tokens):
                  shuffle(all_tokens)
                  for other in all_tokens:
                      if input_type in other.outputs:
-                         fill_inputs(other)
-                         target = len(tokens)-1
-                         consumed.add((target, input_type))
-                         break
+                         if fill_inputs(other, depth+1):
+                             target = len(tokens)-1
+                             consumed.add((target, input_type))
+                             break
              if target is not None:
                  ids.append(target)
          connections.append(ids)
          tokens.append(token)
-    fill_inputs(sink)
+         return True
+    fill_inputs(sink, 0)
     return Spell(tokens, connections)

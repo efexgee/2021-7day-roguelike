@@ -37,17 +37,9 @@ def new_game() -> Engine:
     max_rooms = 30
 
     player = copy.deepcopy(entity_factories.player)
-    print(player.magicable.bump_spell.tokens)
-    for (token, count) in Counter(player.magicable.ranged_spell.tokens + player.magicable.bump_spell.tokens).items():
-        item = Item(
-            char = ".",
-            name = token.name,
-            count = 10 * count,
-            token = token
-        )
-        item.parent = player.inventory
-        player.inventory.items.append(item)
-
+    for (token, count) in Counter(player.magicable.ranged_spell.tokens + player.magicable.bump_spell.tokens + player.magicable.heal_spell.tokens).items():
+        for _ in range(10*count):
+            player.inventory.add_token(token)
 
     engine = Engine(player=player)
 

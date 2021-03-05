@@ -11,6 +11,7 @@ from entity import Item
 import entity_factories
 from game_map import GameMap
 from tile_types import floor, down_stairs, TileLabel
+from components.magic.token import all_tokens
 
 
 if TYPE_CHECKING:
@@ -34,7 +35,7 @@ item_chances: Dict[int, List[Tuple[Entity, int]]] = {
 
 
 enemy_chances: Dict[int, List[Tuple[Entity, int]]] = {
-    0: [(entity_factories.orc, 80)],
+    0: [(entity_factories.orc, 80), (entity_factories.imp, 30), (entity_factories.goblin_wizard, 70), (entity_factories.mushroom, 100)],
     3: [(entity_factories.troll, 15)],
     5: [(entity_factories.troll, 30)],
     7: [(entity_factories.troll, 60)],
@@ -80,7 +81,7 @@ def get_entities_at_random(
             entities, weights=entity_weighted_chance_values, k=number_of_entities
         )
 
-        return chosen_entities
+        return [e for factory in chosen_entities for e in factory()]
     else:
         return []
 
@@ -129,16 +130,15 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int,) 
         item_chances, number_of_items, floor_number
     )
 
+    tokens = all_tokens()
+
     for monster in monsters:
         for (token, count) in Counter(monster.magicable.ranged_spell.tokens + monster.magicable.bump_spell.tokens).items():
-            item = Item(
-                char = ".",
-                name = token.name,
-                count = 10 * count,
-                token = token
-            )
-            item.parent = monster.inventory
-            monster.inventory.items.append(item)
+            for _ in range(5*count):
+                monster.inventory.add_token(token)
+        for _ in range(30):
+            token = random.choice(tokens)
+            monster.inventory.add_token(token())
 
     for entity in monsters + items:
         x = random.randint(room.x1 + 1, room.x2 - 1)
