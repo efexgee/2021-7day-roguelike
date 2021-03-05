@@ -1,4 +1,5 @@
 from __future__ import annotations
+from random import choice
 
 from typing import TYPE_CHECKING
 
@@ -55,16 +56,31 @@ class Fighter(BaseComponent):
         if self.engine.player is self.parent:
             death_message = "You died!"
             death_message_color = color.player_die
+            self.parent.char = "%"
+            self.parent.color = (191, 0, 0)
+            self.parent.blocks_movement = False
+            self.parent.ai = None
+            self.parent.name = f"remains of {self.parent.name}"
+            self.parent.render_order = RenderOrder.CORPSE
         else:
             death_message = f"{self.parent.name} is dead!"
             death_message_color = color.enemy_die
+            self.parent.ai = None
 
-        self.parent.char = "%"
-        self.parent.color = (191, 0, 0)
-        self.parent.blocks_movement = False
-        self.parent.ai = None
-        self.parent.name = f"remains of {self.parent.name}"
-        self.parent.render_order = RenderOrder.CORPSE
+        drop_targets = []
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                x = self.parent.x + dx
+                y = self.parent.y + dy
+                if self.engine.game_map.tiles["walkable"][x,y]:
+                    drop_targets.append((x,y))
+        for item in self.parent.inventory.items:
+            (x,y) = choice(drop_targets)
+            item.x = x
+            item.y = y
+            self.engine.game_map.queue_add_entity(item)
+        self.parent.inventory.items.clear()
+
 
         self.engine.message_log.add_message(death_message, death_message_color)
 

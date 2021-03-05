@@ -6,7 +6,9 @@ from typing import List, Optional, Tuple, TYPE_CHECKING
 import numpy as np  # type: ignore
 import tcod
 
-from actions import Action, BumpAction, MeleeAction, MovementAction, WaitAction
+from actions import Action, BumpAction, MeleeAction, MovementAction, WaitAction, CastSpellAction
+from input_handlers import cast_action
+from spell_generator import random_spell
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -47,6 +49,13 @@ class BaseAI(Action):
         return [(index[0], index[1]) for index in path]
 
 
+class DummyAI(BaseAI):
+    def __init__(self, entity: Actor):
+        pass
+
+    def perform(self) -> None:
+        pass
+
 class HostileEnemy(BaseAI):
     def __init__(self, entity: Actor):
         super().__init__(entity)
@@ -61,6 +70,36 @@ class HostileEnemy(BaseAI):
         if self.engine.game_map.visible[self.entity.x, self.entity.y]:
             if distance <= 1:
                 return MeleeAction(self.entity, dx, dy).perform()
+
+            self.path = self.get_path_to(target.x, target.y)
+
+        if self.path:
+            dest_x, dest_y = self.path.pop(0)
+            return MovementAction(
+                self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
+            ).perform()
+
+        return WaitAction(self.entity).perform()
+
+class RangedHostileEnemy(BaseAI):
+    def __init__(self, entity: Actor, spell_fn):
+        super().__init__(entity)
+        self.path: List[Tuple[int, int]] = []
+        self.spell_fn = spell_fn
+
+    def perform(self) -> None:
+        target = self.engine.player
+        dx = target.x - self.entity.x
+        dy = target.y - self.entity.y
+        distance = max(abs(dx), abs(dy))  # Chebyshev distance.
+
+        if self.engine.game_map.visible[self.entity.x, self.entity.y]:
+            spell = random_spell([i.token for i in self.entity.inventory.items])
+            spell = self.spell_fn(self.entity)
+            if spell and spell.can_cast(self.entity.inventory):
+                range = spell.attributes().get("range", 0)
+                if distance <= range:
+                    return CastSpellAction(self.entity, spell, (target.x, target.y)).perform()
 
             self.path = self.get_path_to(target.x, target.y)
 
