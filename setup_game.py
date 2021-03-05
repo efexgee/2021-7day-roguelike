@@ -1,6 +1,8 @@
 """Handle the loading and initialization of game sessions."""
 from __future__ import annotations
 
+from collections import Counter
+
 import copy
 import lzma
 import pickle
@@ -35,52 +37,15 @@ def new_game() -> Engine:
     max_rooms = 30
 
     player = copy.deepcopy(entity_factories.player)
-    player.magicable.bump_spell = Spell(
-            [
-                SpecificTarget(),
-                Stupendous(),
-                MadeOfWhatever("red globule", "poop"),
-                BeamOf(),
-                WithinRange(2),
-            ],
-            [
-                [],
-                [],
-                [],
-                [2, 1, 4],
-                [0]
-            ]
-        )
-    all_tokens = [
-        AllActors(),
-        SpecificTarget(),
-        TheCaster(),
-        Small(),
-        Medium(),
-        Large(),
-        Stupendous(),
-        OneAtRandom(),
-        WithinRange(10),
-        MadeOfWhatever("red globule", "poop"),
-        MadeOfWhatever("green globule", "fire"),
-        MadeOfWhatever("black globule", "ice"),
-        MadeOfWhatever("puce globule", "lightning"),
-        MadeOfWhatever("steely globule", "knives"),
-        MadeOfWhatever("blue globule", "strong coffee"),
-        MadeOfWhatever("pink globule", "screaming elemental void"),
-        DoubleMaterial(),
-        BallOf(),
-        BeamOf(),
-    ]
-    for token in all_tokens:
-        token = copy.deepcopy(token)
-        token.parent = player.inventory
+    print(player.magicable.bump_spell.tokens)
+    for (token, count) in Counter(player.magicable.ranged_spell.tokens + player.magicable.bump_spell.tokens).items():
         item = Item(
             char = ".",
             name = token.name,
-            count = 10,
+            count = 10 * count,
             token = token
         )
+        item.parent = player.inventory
         player.inventory.items.append(item)
 
 

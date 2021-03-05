@@ -419,13 +419,15 @@ class SelectIndexHandler(AskUserEventHandler):
         super().__init__(engine)
         player = self.engine.player
         engine.mouse_location = player.x, player.y
+        self.draw_cursor = True
 
     def on_render(self, console: tcod.Console) -> None:
         """Highlight the tile under the cursor."""
         super().on_render(console)
-        x, y = self.engine.mouse_location
-        console.tiles_rgb["bg"][x, y] = color.white
-        console.tiles_rgb["fg"][x, y] = color.black
+        if self.draw_cursor:
+            x, y = self.engine.mouse_location
+            console.tiles_rgb["bg"][x, y] = color.white
+            console.tiles_rgb["fg"][x, y] = color.black
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         """Check for key movement or confirmation keys."""
@@ -505,6 +507,7 @@ class AreaRangedAttackHandler(SelectIndexHandler):
         self.range = range
         self.source = source
         self.callback = callback
+        self.draw_cursor = False
 
     def on_render(self, console: tcod.Console) -> None:
         """Highlight the tile under the cursor."""
@@ -515,6 +518,9 @@ class AreaRangedAttackHandler(SelectIndexHandler):
         bg = color.valid_aoe
         if math.sqrt((x - self.source[0]) ** 2 + (y - self.source[1]) ** 2) > self.range:
             bg = color.invalid_aoe
+        console.bg[x, y, 0] = max(0, min(255, console.bg[x, y, 0]+bg[0]))
+        console.bg[x, y, 1] = max(0, min(255, console.bg[x, y, 1]+bg[1]))
+        console.bg[x, y, 2] = max(0, min(255, console.bg[x, y, 2]+bg[2]))
 
         for dx in range(-self.radius, self.radius+1):
             for dy in range(-self.radius, self.radius+1):
@@ -574,7 +580,7 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_f:
             if player.magicable.ranged_spell.can_cast(player.inventory):
                 if player.magicable.ranged_spell.needs_target():
-                    attributes = player.magicable.ranged_spell.attributes(player, self.engine, (player.x, player.y))
+                    attributes = player.magicable.ranged_spell.attributes()
                     def callback(xy):
                         if not self.engine.game_map.visible[xy]:
                             self.engine.message_log.add_message("You cannot target an area that you cannot see.")
@@ -587,7 +593,7 @@ class MainGameEventHandler(EventHandler):
                     return AreaRangedAttackHandler(
                         self.engine,
                         radius=attributes.get("AOE_radius", 0),
-                        range=10,
+                        range=attributes.get("range", 0),
                         source=(player.x, player.y),
                         callback=callback,
                     )
