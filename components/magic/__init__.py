@@ -119,7 +119,6 @@ class Magic(BaseComponent):
             return True
         self.bump_spell = random_spell_with_constraints(is_valid)
         self.known_tokens.update({t.__class__ for t in self.bump_spell.tokens})
-        print(self.known_tokens)
 
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
         if self.bump_spell is not None:
@@ -135,7 +134,7 @@ class Magic(BaseComponent):
                 )
             else:
                 self.engine.message_log.add_message(
-                    f"{self.parent.name} cast a spell", color.magic
+                    f"{self.parent.name} casts a spell", color.magic
                 )
             prepared_spell.cast(context)
         elif self.parent.name == "Player":

@@ -157,7 +157,7 @@ class BallOf(Token):
                     if actor.distance(target[0], target[1]) <= radius and context.engine.game_map.visible[target]:
                         if not context.quiet:
                             context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} dealing {damage} damage!")
-                        actor.fighter.take_damage(damage)
+                        actor.fighter.take_damage(damage, material)
         elif not context.quiet:
             context.engine.message_log.add_message("nothing happens")
 
@@ -191,7 +191,7 @@ class BeamOf(Token):
                 if actor is not None:
                     if not context.quiet:
                         context.engine.message_log.add_message(f"A {scale} beam of {material} hits {actor.name} dealing {damage} damage!")
-                    actor.fighter.take_damage(damage)
+                    actor.fighter.take_damage(damage, material)
                 elif not context.quiet:
                     context.engine.message_log.add_message(f"A {scale} beam of {material} hits the ground, acomplishing nothing")
         elif not context.quiet:

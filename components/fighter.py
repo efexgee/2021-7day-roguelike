@@ -13,11 +13,12 @@ if TYPE_CHECKING:
 class Fighter(BaseComponent):
     parent: Actor
 
-    def __init__(self, hp: int, base_defense: int, base_power: int):
+    def __init__(self, hp: int, base_defense: int, base_power: int, resistance: str=None):
         self.max_hp = hp
         self._hp = hp
         self.base_defense = base_defense
         self.base_power = base_power
+        self.resistance = resistance
 
     @property
     def hp(self) -> int:
@@ -85,5 +86,8 @@ class Fighter(BaseComponent):
 
         return amount_recovered
 
-    def take_damage(self, amount: int) -> None:
+    def take_damage(self, amount: int, type: str=None) -> None:
+        if self.resistance and type == self.resistance:
+            amount = int(amount / 2)
+            self.parent.gamemap.engine.message_log.add_message(f"{self.parent.name} is resistant to {type} and takes only {amount} damage!")
         self.hp -= amount

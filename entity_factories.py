@@ -43,3 +43,25 @@ troll = Actor(
     inventory=Inventory(capacity=0),
     level=Level(xp_given=100),
 )
+fire_elem = Actor(
+    char="E",
+    color=(127, 0, 0),
+    name="Fire Elemental",
+    ai_cls=HostileEnemy,
+    equipment=Equipment(),
+    fighter=Fighter(hp=10, base_defense=2, base_power=3, resistance="fire"),
+    magicable=Magic(),
+    inventory=Inventory(capacity=0),
+    level=Level(xp_given=175),
+)
+g_rat = Actor(
+    char="r",
+    color=(127, 127, 0),
+    name="Giant Rat",
+    ai_cls=HostileEnemy,
+    equipment=Equipment(),
+    fighter=Fighter(hp=6, base_defense=0, base_power=1, resistance="poop"),
+    magicable=Magic(),
+    inventory=Inventory(capacity=0),
+    level=Level(xp_given=15),
+)
