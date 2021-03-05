@@ -11,13 +11,14 @@ import actions
 from actions import (
     Action,
     BumpAction,
-    PickupAction,
     WaitAction,
     CastRandomSpellAction,
     CastSpellAction,
 )
 import color
 import exceptions
+from entity import Actor
+from spell_generator import random_spell
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -151,6 +152,16 @@ class EventHandler(BaseEventHandler):
             return False  # Skip enemy turn on exceptions.
 
         self.engine.handle_enemy_turns()
+
+        removed = []
+        for entity in self.engine.game_map.entities:
+            if isinstance(entity, Actor) and not entity.is_alive:
+                removed.append(entity)
+
+        self.engine.game_map.apply_new_item_queue()
+
+        for entity in removed:
+            self.engine.game_map.entities.remove(entity)
 
         self.engine.check_environment_interactions()
 
@@ -564,9 +575,6 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_v:
             return HistoryViewer(self.engine)
 
-        elif key == tcod.event.K_g:
-            action = PickupAction(player)
-
         elif key == tcod.event.K_i:
             return InventoryActivateHandler(self.engine)
         elif key == tcod.event.K_d:
@@ -575,37 +583,46 @@ class MainGameEventHandler(EventHandler):
             return CharacterScreenEventHandler(self.engine)
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
-        elif key == tcod.event.K_r:
-            action = CastRandomSpellAction(player)
         elif key == tcod.event.K_f:
-            if player.magicable.ranged_spell.can_cast(player.inventory):
-                if player.magicable.ranged_spell.needs_target():
-                    attributes = player.magicable.ranged_spell.attributes()
-                    def callback(xy):
-                        if not self.engine.game_map.visible[xy]:
-                            self.engine.message_log.add_message("You cannot target an area that you cannot see.")
-                            return
-                        return actions.CastSpellAction(
-                            player,
-                            player.magicable.ranged_spell,
-                            xy
-                        )
-                    return AreaRangedAttackHandler(
-                        self.engine,
-                        radius=attributes.get("AOE_radius", 0),
-                        range=attributes.get("range", 0),
-                        source=(player.x, player.y),
-                        callback=callback,
-                    )
-                else:
-                    action = actions.CastSpellAction(player, player.magicable.ranged_spell, None)
-            else:
-                self.engine.message_log.add_message(
-                    "You don't have the right tokens to make a spell", color.magic
-                )
+            action = cast_action(player, player.magicable.ranged_spell, self.engine)
+        elif key == tcod.event.K_p:
+            action = cast_action(player, player.magicable.heal_spell, self.engine)
+        elif key == tcod.event.K_r:
+            spell = random_spell([i.token for i in player.inventory.items])
+            action = cast_action(player, spell, self.engine)
 
         # No valid key was pressed
         return action
+
+def cast_action(player, spell, engine):
+    if not spell:
+        return None
+
+    if spell.can_cast(player.inventory):
+        if spell.needs_target():
+            attributes = spell.attributes()
+            def callback(xy):
+                if not engine.game_map.visible[xy]:
+                    engine.message_log.add_message("You cannot target an area that you cannot see.")
+                    return
+                return actions.CastSpellAction(
+                    player,
+                    spell,
+                    xy
+                )
+            return AreaRangedAttackHandler(
+                engine,
+                radius=attributes.get("AOE_radius", 0),
+                range=attributes.get("range", 0),
+                source=(player.x, player.y),
+                callback=callback,
+            )
+        else:
+            return actions.CastSpellAction(player, spell, None)
+    else:
+        engine.message_log.add_message(
+            "You don't have the right tokens to make a spell", color.magic
+        )
 
 
 class GameOverEventHandler(EventHandler):

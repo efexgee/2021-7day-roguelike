@@ -45,10 +45,11 @@ class TheCaster(Token):
         super().__init__("black shard", ["caster"], ["target"])
 
     def process(self, context):
+        context.attributes["targets_caster"] = True
         if context.dry_run:
             return []
         else:
-            return [(context.caster.x, context.castor.y)]
+            return [(context.caster.x, context.caster.y)]
 
 class SpecificTarget(Token):
     def __init__(self):
@@ -73,6 +74,18 @@ class WithinRange(Token):
         else:
             return []
 
+class ClosestTarget(Token):
+    def __init__(self, range):
+        super().__init__("emerald shard", ["target"], ["target"])
+        self.range = range
+
+    def process(self, context, targets):
+        if targets:
+            sort(target, lambda t: context.caster.distance(*t))
+            [target[0]]
+        else:
+            return []
+
 class OneAtRandom(Token):
     def __init__(self):
         super().__init__("black marble", ["target"], ["target"])
@@ -91,12 +104,12 @@ class MadeOfWhatever(Token):
     def process(self, context):
         return self.material
 
-class DoubleMaterial(Token):
-    def __init__(self):
-        super().__init__("squirming module", ["material", "material"], ["material"])
-
-    def process(self, context, a, b):
-        return f"{a} and {b}"
+#class DoubleMaterial(Token):
+#    def __init__(self):
+#        super().__init__("squirming module", ["material", "material"], ["material"])
+#
+#    def process(self, context, a, b):
+#        return f"{a} and {b}"
 
 class Small(Token):
     def __init__(self):
@@ -136,6 +149,16 @@ class BallOf(Token):
             damage = 1
         elif material == "fire":
             damage = 10
+        elif material == "lightning":
+            damage = 10
+        elif material == "screaming elemental void":
+            damage = 20
+        elif material == "strong coffee":
+            damage = 1
+        elif material == "knives":
+            damage = 5
+        elif material == "ice":
+            damage = 5
         radius = 0
         if scale == "small":
             radius = 1
@@ -171,6 +194,16 @@ class BeamOf(Token):
             damage = 1
         elif material == "fire":
             damage = 10
+        elif material == "lightning":
+            damage = 10
+        elif material == "screaming elemental void":
+            damage = 20
+        elif material == "strong coffee":
+            damage = 1
+        elif material == "knives":
+            damage = 5
+        elif material == "ice":
+            damage = 5
         if scale == "small":
             damage *= 1
         elif scale == "medium":
@@ -194,6 +227,37 @@ class BeamOf(Token):
                     actor.fighter.take_damage(damage, material)
                 elif not context.quiet:
                     context.engine.message_log.add_message(f"A {scale} beam of {material} hits the ground, acomplishing nothing")
+        elif not context.quiet:
+            context.engine.message_log.add_message("nothing happens")
+
+class Heal(Token):
+    def __init__(self):
+        super().__init__("churlish rat", ["scale", "target"], ["sink"])
+
+    def process(self, context, scale, targets):
+        heal = 0
+        if scale == "small":
+            heal = 5
+        elif scale == "medium":
+            heal = 10
+        elif scale == "large":
+            heal = 20
+        elif scale == "stupendous":
+            heal = 100
+        context.attributes["base_damage"] = -heal
+
+        if context.dry_run:
+            return
+
+        if targets:
+            for target in targets:
+                actor = context.engine.game_map.get_actor_at_location(target[0], target[1])
+                if actor is not None:
+                    if not context.quiet:
+                        context.engine.message_log.add_message(f"{actor.name} heals for {heal}!")
+                    actor.fighter.take_damage(-heal)
+                elif not context.quiet:
+                    context.engine.message_log.add_message(f"nothing happens")
         elif not context.quiet:
             context.engine.message_log.add_message("nothing happens")
 

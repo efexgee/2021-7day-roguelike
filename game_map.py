@@ -30,6 +30,15 @@ class GameMap:
         )  # Tiles the player has seen before
 
         self.downstairs_location = (0, 0)
+        self.new_item_queue = []
+
+    def queue_add_entity(self, entity):
+        self.new_item_queue.append(entity)
+
+    def apply_new_item_queue(self):
+        for entity in self.new_item_queue:
+            self.entities.add(entity)
+        self.new_item_queue.clear()
 
     @property
     def gamemap(self) -> GameMap:

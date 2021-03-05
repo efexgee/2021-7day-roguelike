@@ -103,7 +103,8 @@ class Magic(BaseComponent):
                 return False
             return True
         self.ranged_spell = random_spell_with_constraints(is_valid)
-        self.known_tokens.update({t.__class__ for t in self.ranged_spell.tokens})
+        if self.ranged_spell:
+            self.known_tokens.update({t.__class__ for t in self.ranged_spell.tokens})
 
         def is_valid(spell):
             if len(spell.tokens) > 6:
@@ -118,7 +119,25 @@ class Magic(BaseComponent):
                 return False
             return True
         self.bump_spell = random_spell_with_constraints(is_valid)
-        self.known_tokens.update({t.__class__ for t in self.bump_spell.tokens})
+
+        if self.bump_spell:
+            self.known_tokens.update({t.__class__ for t in self.bump_spell.tokens})
+
+        def is_valid(spell):
+            if len(spell.tokens) > 6:
+                return False
+            attributes = spell.attributes()
+            if not attributes.get("targets_caster", False):
+                return False
+            if attributes.get("AOE_radius", 0) > 0:
+                return False
+            base_damage = attributes.get("base_damage", 0)
+            if base_damage < -10 or base_damage > -1:
+                return False
+            return True
+        self.heal_spell = random_spell_with_constraints(is_valid)
+        if self.heal_spell:
+            self.known_tokens.update({t.__class__ for t in self.heal_spell.tokens})
 
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
         if self.bump_spell is not None:
