@@ -18,6 +18,7 @@ class Context:
         self.supplied_target = target
         self.attributes = dict()
         self.dry_run = False
+        self.quiet = False
 
 class Spell:
     def __init__(self, tokens, connections):
@@ -33,8 +34,8 @@ class Spell:
                 return True
         return False
 
-    def attributes(self, caster, engine, target: Optional[(int, int)]):
-        context = Context(caster, engine, target)
+    def attributes(self):
+        context = Context(None, None, None)
         context.dry_run = True
         PreparedSpell(self).cast(context)
         return context.attributes
@@ -87,99 +88,61 @@ class Magic(BaseComponent):
     parent: Item
 
     def __init__(self):
-        self.bump_spell = None
-        self.ranged_spell = Spell(
-            [
-                SpecificTarget(),
-                Medium(),
-                MadeOfWhatever("green globule", "fire"),
-                BallOf()
-            ],
-            [
-                [],
-                [],
-                [],
-                [2, 1, 0],
-            ]
-        )
+        self.known_tokens = set()
+        from spell_generator import random_spell_with_constraints
+        def is_valid(spell):
+            if len(spell.tokens) > 6:
+                return False
+            attributes = spell.attributes()
+            if not attributes.get("requires_target", False):
+                return False
+            if attributes.get("range", 0) < 4 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
+                return False
+            base_damage = attributes.get("base_damage", 0)
+            if base_damage > 3 or base_damage < 1:
+                return False
+            return True
+        self.ranged_spell = random_spell_with_constraints(is_valid)
+        self.known_tokens.update({t.__class__ for t in self.ranged_spell.tokens})
 
-    def cast_random_spell(self) -> Optional[ActionOrHandler]:
-        spell = random_spell_from_inventory(self.parent.inventory)
-        if spell is not None:
-            context = Context(self.parent, self.engine)
-            self.engine.message_log.add_message(
-                "You cast a random spell", color.magic
-            )
-            spell.cast(context)
-        else:
-            self.engine.message_log.add_message(
-                "You don't have the right tokens to make a spell", color.magic
-            )
-
+        def is_valid(spell):
+            if len(spell.tokens) > 6:
+                return False
+            attributes = spell.attributes()
+            if not attributes.get("requires_target", False):
+                return False
+            if attributes.get("range", 0) != 1.5 or attributes.get("AOE_radius", 0) != 0:
+                return False
+            base_damage = attributes.get("base_damage", 0)
+            if base_damage > 3 or base_damage < 1:
+                return False
+            return True
+        self.bump_spell = random_spell_with_constraints(is_valid)
+        self.known_tokens.update({t.__class__ for t in self.bump_spell.tokens})
+        print(self.known_tokens)
 
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
         if self.bump_spell is not None:
             self.cast_spell(self.bump_spell, (target.x, target.y))
 
     def cast_spell(self, spell: Spell, target: Optional[Actor] = None) -> Optional[ActionOrHandler]:
-        spell = spell.prepare_from_inventory(self.parent.inventory)
-        if spell is not None:
+        prepared_spell = spell.prepare_from_inventory(self.parent.inventory)
+        if prepared_spell is not None:
             context = Context(self.parent, self.engine, target)
-            self.engine.message_log.add_message(
-                "You cast a spell", color.magic
-            )
-            spell.cast(context)
-        else:
+            if self.parent.name == "Player":
+                self.engine.message_log.add_message(
+                    "You cast a spell", color.magic
+                )
+            else:
+                self.engine.message_log.add_message(
+                    f"{self.parent.name} cast a spell", color.magic
+                )
+            prepared_spell.cast(context)
+        elif self.parent.name == "Player":
             self.engine.message_log.add_message(
                 "You don't have the right tokens to cast that spell", color.magic
             )
-
-def random_spell_from_inventory(inventory: Inventory) -> PreparedSpell:
-    sink = None
-    for item in inventory.items:
-        token = item.token 
-        if not isinstance(token, Token):
-            continue
-        if "sink" in token.outputs:
-            sink = token
-            item.count -= 1
-            if item.count <= 0:
-                inventory.items.remove(item)
-            break
-    tokens = []
-
-    if sink is None:
-        return None
-
-    connections = []
-    consumed = set()
-
-    def fill_inputs(token):
-         ids = []
-         for input_type in token.inputs:
-             target = None
-             for (idx, other) in enumerate(tokens):
-                if input_type in other.outputs and (idx, input_type) not in consumed:
-                    consumed.add((idx, input_type))
-                    target = idx
-                    break
-             if target is None:
-                 shuffle(inventory.items)
-                 for item in inventory.items:
-                     other = item.token
-                     if not isinstance(other, Token):
-                        continue
-                     if input_type in other.outputs:
-                         item.count -= 1
-                         if item.count <= 0:
-                            inventory.items.remove(item)
-                         fill_inputs(other)
-                         target = len(tokens)-1
-                         consumed.add((target, input_type))
-                         break
-             if target is not None:
-                 ids.append(target)
-         connections.append(ids)
-         tokens.append(token)
-    fill_inputs(sink)
-    return PreparedSpell(Spell(tokens, connections))
+        else:
+            self.engine.message_log.add_message(
+                f"{self.parent.name} failed to cast a spell", color.magic
+            )

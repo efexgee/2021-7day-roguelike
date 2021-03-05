@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from collections import Counter
+
 import random
 from typing import Dict, Iterator, List, Tuple, TYPE_CHECKING
 
 import tcod
 
+from entity import Item
 import entity_factories
 from game_map import GameMap
 from tile_types import floor, down_stairs, TileLabel
@@ -125,6 +128,17 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int,) 
     items: List[Entity] = get_entities_at_random(
         item_chances, number_of_items, floor_number
     )
+
+    for monster in monsters:
+        for (token, count) in Counter(monster.magicable.ranged_spell.tokens + monster.magicable.bump_spell.tokens).items():
+            item = Item(
+                char = ".",
+                name = token.name,
+                count = 10 * count,
+                token = token
+            )
+            item.parent = monster.inventory
+            monster.inventory.items.append(item)
 
     for entity in monsters + items:
         x = random.randint(room.x1 + 1, room.x2 - 1)
