@@ -6,7 +6,7 @@ import numpy as np  # type: ignore
 from tcod.console import Console
 
 from entity import Actor, Item
-import tile_types
+from tile_types import wall, SHROUD
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -20,7 +20,7 @@ class GameMap:
         self.engine = engine
         self.width, self.height = width, height
         self.entities = set(entities)
-        self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
+        self.tiles = np.full((width, height), fill_value=wall, order="F")
 
         self.visible = np.full(
             (width, height), fill_value=False, order="F"
@@ -80,10 +80,11 @@ class GameMap:
         If it isn't, but it's in the "explored" array, then draw it with the "dark" colors.
         Otherwise, the default is "SHROUD".
         """
+
         console.tiles_rgb[0 : self.width, 0 : self.height] = np.select(
             condlist=[self.visible, self.explored],
             choicelist=[self.tiles["light"], self.tiles["dark"]],
-            default=tile_types.SHROUD,
+            default=SHROUD,
         )
 
         entities_sorted_for_rendering = sorted(

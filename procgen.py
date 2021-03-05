@@ -7,7 +7,7 @@ import tcod
 
 import entity_factories
 from game_map import GameMap
-import tile_types
+from tile_types import floor, down_stairs, TileLabel
 
 
 if TYPE_CHECKING:
@@ -186,7 +186,7 @@ def generate_dungeon(
         # If there are no intersections then the room is valid.
 
         # Dig out this rooms inner area.
-        dungeon.tiles[new_room.inner] = tile_types.floor
+        dungeon.tiles[new_room.inner] = floor
 
         if len(rooms) == 0:
             # The first room, where the player starts.
@@ -195,8 +195,8 @@ def generate_dungeon(
         else:  # All rooms after the first.
             # Dig out a tunnel between this room and the previous one.
             for x, y in tunnel_between(rooms[-1].center, new_room.center):
-                if (tile_types.TileLabel(dungeon.tiles[x,y]["label"]).name == "Wall"):
-                    dungeon.tiles[x, y] = tile_types.floor
+                if (TileLabel(dungeon.tiles[x,y]["label"]).name == "Wall"):
+                    dungeon.tiles[x, y] = floor
 
             center_of_last_room = new_room.center
 
@@ -207,6 +207,6 @@ def generate_dungeon(
         # Finally, append the new room to the list.
         rooms.append(new_room)
 
-    dungeon.tiles[dungeon.downstairs_location] = tile_types.down_stairs
+    dungeon.tiles[dungeon.downstairs_location] = down_stairs
 
     return dungeon

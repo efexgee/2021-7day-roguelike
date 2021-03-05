@@ -28,8 +28,8 @@ class Engine:
 
     def check_environment_interactions(self) -> None:
         for actor in set(self.game_map.actors):
-            if self.game_map.tiles["damage"][actor.x, actor.y]:
-                damage = self.game_map.tiles["damage"][actor.x, actor.y]
+            damage = self.game_map.tiles["damage"][actor.x, actor.y]
+            if damage:
                 self.message_log.add_message(f"{actor.name} is standing on some {TileLabel(self.game_map.tiles['label'][actor.x, actor.y]).name} and takes {damage} damage.")
                 actor.fighter.take_damage(damage)
 
