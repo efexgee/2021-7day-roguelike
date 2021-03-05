@@ -23,12 +23,12 @@ graphic_dt = np.dtype(
 # Tile struct used for statically defined tile data.
 tile_dt = np.dtype(
     [
-        ("label", int), # Used in messages
+        ("label", np.int8), # Used in messages
         ("walkable", np.bool),  # True if this tile can be walked over.
         ("transparent", np.bool),  # True if this tile doesn't block FOV.
         ("dark", graphic_dt),  # Graphics for when this tile is not in FOV.
         ("light", graphic_dt),  # Graphics for when the tile is in FOV.
-        ("damage", int), # Non-zero if this tile deals damage.
+        ("damage", np.int8), # Non-zero if this tile deals damage.
     ]
 )
 
