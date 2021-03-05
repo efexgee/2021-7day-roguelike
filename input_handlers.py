@@ -152,6 +152,8 @@ class EventHandler(BaseEventHandler):
 
         self.engine.handle_enemy_turns()
 
+        self.engine.check_environment_interactions()
+
         self.engine.update_fov()
         return True
 
