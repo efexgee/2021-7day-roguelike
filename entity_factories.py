@@ -16,7 +16,7 @@ player = Actor(
     name="Player",
     ai_cls=HostileEnemy,
     equipment=Equipment(),
-    fighter=Fighter(hp=30, base_defense=1, base_power=2),
+    fighter=Fighter(hp=3000, base_defense=1, base_power=2),
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(level_up_base=200),
@@ -112,25 +112,27 @@ def troll():
     inventory=Inventory(),
     level=Level(xp_given=100),
     )]
-fire_elem = Actor(
+def fire_elem():
+    return [Actor(
     char="E",
     color=(127, 0, 0),
     name="Fire Elemental",
     ai_cls=HostileEnemy,
     equipment=Equipment(),
-    fighter=Fighter(hp=10, base_defense=2, base_power=3, resistance="fire"),
+    fighter=Fighter(hp=10, base_defense=2, base_power=3, resistances={"fire": 1.20}),
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=175),
-)
-g_rat = Actor(
+    )]
+def giant_rat():
+    return [Actor(
     char="r",
     color=(127, 127, 0),
     name="Giant Rat",
     ai_cls=HostileEnemy,
     equipment=Equipment(),
-    fighter=Fighter(hp=6, base_defense=0, base_power=1, resistance="poop"),
+    fighter=Fighter(hp=6, base_defense=0, base_power=1, resistances={"poop": 0.5, "strong coffee": -2 }),
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=15),
-)
+    )]

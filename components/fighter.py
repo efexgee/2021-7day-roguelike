@@ -14,12 +14,15 @@ if TYPE_CHECKING:
 class Fighter(BaseComponent):
     parent: Actor
 
-    def __init__(self, hp: int, base_defense: int, base_power: int, resistance: str=None):
+    def __init__(self, hp: int, base_defense: int, base_power: int, resistances: dict[str,int]=None):
         self.max_hp = hp
         self._hp = hp
         self.base_defense = base_defense
         self.base_power = base_power
-        self.resistance = resistance
+        if resistances:
+            self.resistances = resistances
+        else:
+            self.resistances = {}
 
     @property
     def hp(self) -> int:
@@ -102,8 +105,25 @@ class Fighter(BaseComponent):
 
         return amount_recovered
 
-    def take_damage(self, amount: int, type: str=None) -> None:
-        if self.resistance and type == self.resistance:
-            amount = int(amount / 2)
-            self.parent.gamemap.engine.message_log.add_message(f"{self.parent.name} is resistant to {type} and takes only {amount} damage!")
-        self.hp -= amount
+    def take_damage(self, amount_dealt: int, type: str=None) -> None:
+        amount_taken = amount_dealt
+        if type:
+            damage_modifier = self.resistances.get(type)
+            if damage_modifier:
+                # Resistance > 100% will heal the target
+                adjustment_amount = int(amount_dealt * damage_modifier)
+                amount_taken = amount_dealt - adjustment_amount
+                if amount_taken >= 0 and amount_taken < amount_dealt:
+                    self.parent.gamemap.engine.message_log.add_message(
+                        f"{self.parent.name} takes only {amount_taken} damage."
+                    )
+                if amount_taken < 0:
+                    self.parent.gamemap.engine.message_log.add_message(
+                        f"{self.parent.name} heals for {-amount_taken} HP!"
+                    )
+                if adjustment_amount < 0:
+                    self.parent.gamemap.engine.message_log.add_message(
+                        f"{self.parent.name} takes an additional {-adjustment_amount} damage!"
+                    )
+
+        self.hp -= amount_taken
