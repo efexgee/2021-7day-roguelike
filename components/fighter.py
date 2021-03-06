@@ -1,6 +1,6 @@
 from __future__ import annotations
 from random import choice
-from math import ceil
+from math import ceil, isclose
 
 from typing import TYPE_CHECKING
 
@@ -133,31 +133,31 @@ class Fighter(BaseComponent):
         self.hp -= amount
         return amount
 
-    def damage(self, incoming_dmg: int, damage_type: str=None) -> str:
+    def damage(self, incoming_dmg: int, damage_type: str="untyped") -> str:
         """ Attempt to damage the Fighter
 
         This will check for resistances, etc. and may result in a heal.
         It will return string indicating the outcome.
         """
-        if damage_type:
-            dmg_multiplier = self.dmg_multipliers.get(damage_type)
+        dmg_multiplier = self.dmg_multipliers.get(damage_type)
 
-        if dmg_multiplier:
-            # Immunity (the only way 0 damage can be dealt)
-            if dmg_multiplier == 0.0:
-                return "deals no damage"
+        if dmg_multiplier is None:
+            return f"deals {self.decrease_hp(incoming_dmg)} damage"
 
-            # Resistance and vulnerability
-            if dmg_multiplier > 0.0:
-                modified_dmg = ceil(incoming_dmg * dmg_multiplier)
-                return f"deals {self.decrease_hp(modified_dmg)} damage"
+        # Immunity (the only way 0 damage can be dealt)
+        if isclose(dmg_multiplier, 0.0):
+            return "deals no damage"
 
-            # Healing
-            if dmg_multiplier < 0.0:
-                healed = self.increase_hp(ceil(incoming_dmg * -dmg_multiplier))
-                if healed:
-                    return f"heals for {self.increase_hp(healed)}"
-                else:
-                    return "nothing happens"
+        # Resistance and vulnerability
+        if dmg_multiplier > 0.0:
+            # ceil() ensures at least 1 damage unless immune
+            modified_dmg = ceil(incoming_dmg * dmg_multiplier)
+            return f"deals {self.decrease_hp(modified_dmg)} damage"
 
-        return f"deals {self.decrease_hp(incoming_dmg)} damage"
+        # Healing
+        if dmg_multiplier < 0.0:
+            healed = self.increase_hp(ceil(incoming_dmg * -dmg_multiplier))
+            if healed != 0:
+                return f"heals for {self.increase_hp(healed)}"
+            else:
+                return "nothing happens"
