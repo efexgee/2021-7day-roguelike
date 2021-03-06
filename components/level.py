@@ -39,13 +39,6 @@ class Level(BaseComponent):
 
         self.current_xp += xp
 
-        self.engine.message_log.add_message(f"You gain {xp} experience points.")
-
-        if self.requires_level_up:
-            self.engine.message_log.add_message(
-                f"You advance to level {self.current_level + 1}!"
-            )
-
     def increase_level(self) -> None:
         self.current_xp -= self.experience_to_next_level
 
