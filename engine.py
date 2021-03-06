@@ -30,16 +30,16 @@ class Engine:
         for actor in set(self.game_map.actors):
             damage = self.game_map.tiles["damage"][actor.x, actor.y]
             if damage:
-                environmental_hazard = TileLabel(self.game_map.tiles['label'][actor.x, actor.y]).name
+                env_hazard = TileLabel(self.game_map.tiles['label'][actor.x, actor.y]).name
                 if actor is self.player:
                     message_color = color.player_dmg
                 else:
                     message_color = color.enemy_dmg
+                outcome_text = actor.fighter.damage(damage, env_hazard)
                 self.message_log.add_message(
-                    f"{actor.name} is standing in {environmental_hazard} and takes {damage} damage.",
+                    f"{actor.name} is standing in {env_hazard} which {outcome_text}.",
                     message_color
                 )
-                actor.fighter.take_damage(damage, environmental_hazard)
 
     def handle_enemy_turns(self) -> None:
         for entity in set(self.game_map.actors) - {self.player}:

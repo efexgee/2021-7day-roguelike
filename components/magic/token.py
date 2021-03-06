@@ -1,6 +1,8 @@
 from random import sample, shuffle, random
 from inspect import signature
 
+import color
+
 def all_tokens():
     tokens_with_default_constructors = []
     def class_and_descendents(c):
@@ -179,8 +181,8 @@ class BallOf(Token):
                 for actor in context.engine.game_map.actors:
                     if actor.distance(target[0], target[1]) <= radius and context.engine.game_map.visible[target]:
                         if not context.quiet:
-                            context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} dealing {damage} damage!")
-                        actor.fighter.take_damage(damage, material)
+                            outcome_text = actor.fighter.damage(damage, material)
+                            context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} and {outcome_text}!")
         elif not context.quiet:
             context.engine.message_log.add_message("nothing happens")
 
@@ -223,8 +225,8 @@ class BeamOf(Token):
                 actor = context.engine.game_map.get_actor_at_location(target[0], target[1])
                 if actor is not None:
                     if not context.quiet:
-                        context.engine.message_log.add_message(f"A {scale} beam of {material} hits {actor.name} dealing {damage} damage!")
-                    actor.fighter.take_damage(damage, material)
+                        outcome_text = actor.fighter.damage(damage, material)
+                        context.engine.message_log.add_message(f"A {scale} beam of {material} hits {actor.name} and {outcome_text}!")
                 elif not context.quiet:
                     context.engine.message_log.add_message(f"A {scale} beam of {material} hits the ground, acomplishing nothing")
         elif not context.quiet:
@@ -254,8 +256,10 @@ class Heal(Token):
                 actor = context.engine.game_map.get_actor_at_location(target[0], target[1])
                 if actor is not None:
                     if not context.quiet:
-                        context.engine.message_log.add_message(f"{actor.name} heals for {heal}!")
-                    actor.fighter.heal(heal)
+                        context.engine.message_log.add_message(
+                            f"{actor.name} heals for {actor.fighter.increase_hp(heal)}!",
+                            color.health_recovered
+                        )
                 elif not context.quiet:
                     context.engine.message_log.add_message(f"nothing happens")
         elif not context.quiet:

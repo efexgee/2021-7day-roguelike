@@ -143,18 +143,18 @@ class Magic(BaseComponent):
             context = Context(self.parent, self.engine, target)
             if self.parent.name == "Player":
                 self.engine.message_log.add_message(
-                    "You cast a spell", color.magic
+                    "You cast a spell:", color.magic
                 )
             else:
                 self.engine.message_log.add_message(
-                    f"{self.parent.name} cast a spell", color.magic
+                    f"{self.parent.name} casts a spell:", color.magic
                 )
             prepared_spell.cast(context)
         elif self.parent.name == "Player":
             self.engine.message_log.add_message(
-                "You don't have the right tokens to cast that spell", color.magic
+                "You don't have the right tokens to cast that spell", color.impossible
             )
         else:
             self.engine.message_log.add_message(
-                f"{self.parent.name} failed to cast a spell", color.magic
+                f"{self.parent.name} failed to cast a spell", color.error
             )
