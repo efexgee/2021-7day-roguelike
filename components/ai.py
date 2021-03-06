@@ -82,6 +82,9 @@ class Familiar(BaseAI):
         for item in self.entity.inventory.items:
             for _ in range(item.count):
                 self.engine.player.inventory.add_token(item.token)
+        for spell in self.entity.magic.spell_inventory.other_spell:
+            self.engine.player.magic.spell_inventory.other_spell.append(spell)
+        self.entity.magic.spell_inventory.other_spell.clear()
         self.entity.inventory.items.clear()
         path = self.next_step()
         if path:
@@ -95,6 +98,13 @@ class Familiar(BaseAI):
 class DummyAI(BaseAI):
     def __init__(self, entity: Actor):
         pass
+
+    def perform(self) -> None:
+        pass
+
+class SpawnerAI(BaseAI):
+    def __init__(self, entity: Actor, prob):
+        self.prob = prob
 
     def perform(self) -> None:
         pass

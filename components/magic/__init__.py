@@ -138,6 +138,8 @@ class Magic(BaseComponent):
             self.known_tokens.update({t.__class__ for t in spell.tokens})
 
     def cast_spell(self, spell: Spell, target: Optional[Actor] = None) -> Optional[ActionOrHandler]:
+        if not spell.can_cast(self.parent.inventory):
+            return None
         prepared_spell = spell.prepare_from_inventory(self.parent.inventory)
         if prepared_spell is not None:
             context = Context(self.parent, self.engine, target)

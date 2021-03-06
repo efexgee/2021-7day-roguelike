@@ -148,7 +148,8 @@ class Item(Entity):
         consumable: Optional[Consumable] = None,
         equippable: Optional[Equippable] = None,
         token: Optional[Token] = None,
-        count: Optional[int] = None
+        count: Optional[int] = None,
+        spell = None,
     ):
         super().__init__(
             x=x,
@@ -176,3 +177,4 @@ class Item(Entity):
             self.count = 1
 
         self.token = token
+        self.spell = spell

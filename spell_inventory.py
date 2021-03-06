@@ -6,6 +6,7 @@ class SpellInventory:
         self.ranged_spell = None
         self.bump_spell = None
         self.heal_spell = None
+        self.other_spell = []
         self.parent = parent
 
     def render(
@@ -23,3 +24,15 @@ class SpellInventory:
         if self.heal_spell:
             count = self.heal_spell.max_casts(self.parent.parent.inventory)
             console.print(x=x, y=y + y_offset, string=f"heal: {count}", fg=color.white)
+            y_offset -= 1
+        if self.other_spell:
+            count = self.other_spell[0].max_casts(self.parent.parent.inventory)
+            console.print(x=x, y=y + y_offset, string=f"other: {count}", fg=color.white)
+
+    def all_spells(self):
+        return [s for s in [
+            self.ranged_spell,
+            self.bump_spell,
+            self.heal_spell,
+            self.other_spell,
+        ] if s]

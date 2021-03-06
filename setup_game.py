@@ -62,7 +62,6 @@ def new_game() -> Engine:
 
     engine.game_world.generate_floor()
     engine.update_fov()
-    familiar.spawn(engine.game_map, player.x+1, player.y)
 
     engine.message_log.add_message(
         "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
