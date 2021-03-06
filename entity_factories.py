@@ -28,7 +28,7 @@ player = Actor(
 )
 
 def orc():
-  return [Actor(
+  o = Actor(
     char="o",
     color=(63, 127, 63),
     name="Orc",
@@ -38,7 +38,9 @@ def orc():
     inventory=Inventory(),
     magicable=Magic(),
     level=Level(xp_given=35),
-    )]
+    )
+  o.magicable.fill_default_spell_slots()
+  return [o]
 
 
 def mushroom():
@@ -75,38 +77,23 @@ def imp():
     level=Level(xp_given=35),
     )]
 
-def goblin_spell(imp):
-    def is_valid(spell):
-        if not spell:
-            return False
-        if len(spell.tokens) > 6:
-            return False
-        attributes = spell.attributes()
-        if not attributes.get("requires_target", False):
-            return False
-        if attributes.get("range", 0) < 4 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
-            return False
-        base_damage = attributes.get("base_damage", 0)
-        if base_damage > 3 or base_damage < 1:
-            return False
-        return True
-    return random_spell_with_constraints(is_valid, [i.token for i in imp.inventory.items])
-
 def goblin_wizard():
-    return [Actor(
+    g = Actor(
     char="g",
     color=(63, 127, 63),
     name="Goblin Wizard (very wise)",
-    ai_cls=lambda parent: RangedHostileEnemy(parent, goblin_spell),
+    ai_cls=lambda parent: RangedHostileEnemy(parent),
     equipment=Equipment(),
     fighter=Fighter(hp=5, base_defense=0, base_power=3),
     inventory=Inventory(),
     magicable=Magic(),
     level=Level(xp_given=35),
-    )]
+    )
+    g.magicable.fill_default_spell_slots()
+    return [g]
 
 def troll():
-    return [Actor(
+    t = Actor(
     char="T",
     color=(0, 127, 0),
     name="Troll",
@@ -116,9 +103,11 @@ def troll():
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=100),
-    )]
+    )
+    t.magicable.fill_default_spell_slots()
+    return [t]
 def fire_elem():
-    return [Actor(
+    fe = Actor(
     char="E",
     color=(127, 0, 0),
     name="Fire Elemental",
@@ -128,9 +117,11 @@ def fire_elem():
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=175),
-    )]
+    fe.magicable.fill_default_spell_slots()
+    )
+    return[fe]
 def giant_rat():
-    return [Actor(
+    gr = Actor(
     char="r",
     color=(127, 127, 0),
     name="Giant Rat",
@@ -140,4 +131,6 @@ def giant_rat():
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=15),
-    )]
+    gr.magicable.fill_default_spell_slots()
+    )
+    return[gr]

@@ -82,7 +82,7 @@ class HostileEnemy(BaseAI):
         return WaitAction(self.entity).perform()
 
 class RangedHostileEnemy(BaseAI):
-    def __init__(self, entity: Actor, spell_fn):
+    def __init__(self, entity: Actor, spell_fn = None):
         super().__init__(entity)
         self.path: List[Tuple[int, int]] = []
         self.spell_fn = spell_fn
@@ -94,8 +94,9 @@ class RangedHostileEnemy(BaseAI):
         distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
         if self.engine.game_map.visible[self.entity.x, self.entity.y]:
-            spell = random_spell([i.token for i in self.entity.inventory.items])
-            spell = self.spell_fn(self.entity)
+            spell = self.entity.magicable.ranged_spell
+            if self.spell_fn:
+                spell = self.spell_fn(self.entity)
             if spell and spell.can_cast(self.entity.inventory):
                 range = spell.attributes().get("range", 0)
                 if distance <= range:

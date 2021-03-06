@@ -142,9 +142,9 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int,) 
     tokens = all_tokens()
 
     for monster in monsters:
-        for (token, count) in Counter(monster.magicable.ranged_spell.tokens + monster.magicable.bump_spell.tokens).items():
-            for _ in range(5*count):
-                monster.inventory.add_token(token)
+        monster.magicable.assure_castability(monster.magicable.ranged_spell, 10)
+        monster.magicable.assure_castability(monster.magicable.bump_spell, 10)
+        monster.magicable.assure_castability(monster.magicable.heal_spell, 10)
         for _ in range(30):
             token = random.choice(tokens)
             monster.inventory.add_token(token())
