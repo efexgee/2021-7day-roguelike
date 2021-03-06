@@ -98,7 +98,7 @@ class Actor(Entity):
         equipment: Equipment,
         fighter: Fighter,
         inventory: Inventory,
-        magicable: Optional[Magic] = None,
+        magic: Optional[Magic] = None,
         level: Level,
     ):
         super().__init__(
@@ -125,10 +125,10 @@ class Actor(Entity):
         self.level = level
         self.level.parent = self
 
-        self.magicable = magicable
+        self.magic = magic
 
-        if self.magicable:
-            self.magicable.parent = self
+        if self.magic:
+            self.magic.parent = self
 
     @property
     def is_alive(self) -> bool:

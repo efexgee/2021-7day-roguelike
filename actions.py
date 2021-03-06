@@ -53,8 +53,8 @@ class ItemAction(Action):
         """Invoke the items ability, this action will be given to provide context."""
         if self.item.consumable:
             self.item.consumable.activate(self)
-        if self.item.magicable:
-            self.item.magicable.activate(self)
+        if self.item.magic:
+            self.item.magic.activate(self)
 
 
 class DropItem(ItemAction):
@@ -84,7 +84,7 @@ class CastRandomSpellAction(Action):
         self.caster = entity
 
     def perform(self) -> None:
-        self.caster.magicable.cast_random_spell()
+        self.caster.magic.cast_random_spell()
 
 class CastSpellAction(Action):
     def __init__(self, entity: Actor, spell: Spell, target: Optional[(int, int)]):
@@ -93,7 +93,7 @@ class CastSpellAction(Action):
         self.target = target
 
     def perform(self) -> None:
-        self.caster.magicable.cast_spell(self.spell, self.target)
+        self.caster.magic.cast_spell(self.spell, self.target)
 
 
 class TakeStairsAction(Action):
@@ -142,7 +142,7 @@ class MeleeAction(ActionWithDirection):
         if not target:
             raise exceptions.Impossible("Nothing to attack.")
 
-        self.entity.magicable.cast_bump_spell(target)
+        self.entity.magic.cast_bump_spell(target)
 
 
 class MovementAction(ActionWithDirection):
@@ -178,7 +178,7 @@ class MovementAction(ActionWithDirection):
 
 class BumpAction(ActionWithDirection):
     def perform(self) -> None:
-        if self.target_actor:
+        if self.target_actor and self.target_actor.blocks_movement:
             return MeleeAction(self.entity, self.dx, self.dy).perform()
 
         else:
