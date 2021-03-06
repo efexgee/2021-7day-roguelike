@@ -55,18 +55,21 @@ def orc():
   return [o]
 
 
-def mushroom():
-    return [Actor(
+def individual_mushroom():
+    return Actor(
     char="m",
     color=(63, 127, 63),
     name="Mushroom",
-    ai_cls=lambda parent: SpawnerAI(parent, 0.1),
+    ai_cls=lambda parent: SpawnerAI(parent, 0.01, individual_mushroom),
     equipment=Equipment(),
     fighter=Fighter(hp=1, base_defense=0, base_power=3),
     inventory=Inventory(),
     magic=Magic(),
     level=Level(xp_given=35),
-    ) for _ in range(0, 7)]
+    )
+
+def mushroom():
+    return [individual_mushroom() for _ in range(0, 7)]
 
 def imp_spell(imp):
     def is_valid(spell):
