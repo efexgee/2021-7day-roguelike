@@ -117,8 +117,8 @@ def fire_elem():
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=175),
-    fe.magicable.fill_default_spell_slots()
     )
+    fe.magicable.fill_default_spell_slots()
     return[fe]
 def giant_rat():
     gr = Actor(
@@ -131,6 +131,6 @@ def giant_rat():
     magicable=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=15),
-    gr.magicable.fill_default_spell_slots()
     )
+    gr.magicable.fill_default_spell_slots()
     return[gr]
