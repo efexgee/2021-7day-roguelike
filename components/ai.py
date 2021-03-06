@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import copy
+
 import random
 from typing import List, Optional, Tuple, TYPE_CHECKING
+from entity import Actor
 
 import numpy as np  # type: ignore
 import tcod
@@ -103,11 +106,27 @@ class DummyAI(BaseAI):
         pass
 
 class SpawnerAI(BaseAI):
-    def __init__(self, entity: Actor, prob):
+    def __init__(self, entity: Actor, prob, spawn_fn):
+        self.entity = entity
+        self.spawn_fn = spawn_fn
         self.prob = prob
 
     def perform(self) -> None:
-        pass
+        if random.random() < self.prob:
+            drop_targets = []
+            for dx in range(-1, 2):
+                for dy in range(-1, 2):
+                    x = self.entity.x + dx
+                    y = self.entity.y + dy
+                    if x >= 0 and x < self.engine.game_map.width and y >= 0 and y < self.engine.game_map.height and self.engine.game_map.tiles["walkable"][x,y]:
+                        if not self.engine.game_map.get_blocking_entity_at_location(x,y):
+                            drop_targets.append((x,y))
+            if drop_targets:
+                (x,y) = random.choice(drop_targets)
+                new_entity = self.spawn_fn()
+                new_entity.x = x
+                new_entity.y = y
+                new_entity.spawn(self.engine.game_map, x, y)
 
 class HostileEnemy(BaseAI):
     def __init__(self, entity: Actor):

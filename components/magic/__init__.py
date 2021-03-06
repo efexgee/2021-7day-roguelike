@@ -53,12 +53,16 @@ class Spell:
         needed = Counter(self.tokens);
         min_count = 10000000
         for (token, count) in needed.items():
+            found = False
             for item in inventory.items:
                 if item.token == token:
                     num = item.count / count
                     if num < min_count:
                         min_count = num
+                    found = True
                     break
+            if not found:
+                 return 0
         return min_count
 
     def prepare_from_inventory(self, inventory) -> Optional[PreparedSpell]:
