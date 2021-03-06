@@ -21,7 +21,9 @@ from entity import Item
 
 from components.magic import Spell
 from components.magic.token import *
+from spell_generator import fill_shared_grimoire
 
+from spell_generator import fill_shared_grimoire
 
 # Load the background image and remove the alpha channel.
 background_image = tcod.image.load("menu_background.png")[:, :, :3]
@@ -36,10 +38,13 @@ def new_game() -> Engine:
     room_min_size = 6
     max_rooms = 30
 
+    fill_shared_grimoire()
+
     player = copy.deepcopy(entity_factories.player)
-    for (token, count) in Counter(player.magicable.ranged_spell.tokens + player.magicable.bump_spell.tokens + player.magicable.heal_spell.tokens).items():
-        for _ in range(10*count):
-            player.inventory.add_token(token)
+    player.magicable.fill_default_spell_slots()
+    player.magicable.assure_castability(player.magicable.ranged_spell, 10)
+    player.magicable.assure_castability(player.magicable.bump_spell, 10)
+    player.magicable.assure_castability(player.magicable.heal_spell, 10)
 
     engine = Engine(player=player)
 
