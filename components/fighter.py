@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class Fighter(BaseComponent):
     parent: Actor
 
-    def __init__(self, hp: int, base_defense: int, base_power: int, dmg_multipliers: dict[str,int]=None):
+    def __init__(self, hp: int, base_defense: int, base_power: int, dmg_multipliers: dict[str,float]=None):
         self.max_hp = hp
         self._hp = hp
         self.base_defense = base_defense
@@ -106,20 +106,20 @@ class Fighter(BaseComponent):
 
         return amount_recovered
 
-    def take_damage(self, amount_dealt: int, type: str=None) -> None:
-        amount_taken = amount_dealt
-        if type:
-            dmg_multiplier = self.dmg_multipliers.get(type)
+    def take_damage(self, incoming_dmg: int, damage_type: str=None) -> None:
+        modified_dmg = incoming_dmg
+        if damage_type:
+            dmg_multiplier = self.dmg_multipliers.get(damage_type)
             if dmg_multiplier:
-                amount_taken = ceil(amount_dealt * dmg_multiplier)
-                difference = amount_taken - amount_dealt
-                if amount_taken >= 0 and amount_taken < amount_dealt:
+                modified_dmg = ceil(incoming_dmg * dmg_multiplier)
+                difference = modified_dmg - incoming_dmg
+                if modified_dmg >= 0 and modified_dmg < incoming_dmg:
                     if self.engine.player is self.parent:
                         message_color = color.player_resists
                     else:
                         message_color = color.enemy_resists
                     self.parent.gamemap.engine.message_log.add_message(
-                        f"{self.parent.name} only takes {amount_taken} damage.",
+                        f"{self.parent.name} only takes {modified_dmg} damage.",
                         message_color
                     )
                 if difference > 0:
@@ -132,8 +132,8 @@ class Fighter(BaseComponent):
                         message_color
                     )
                 # It's a heal instead.
-                if amount_taken < 0:
-                    amount_healed = self.heal(-amount_taken)
+                if modified_dmg < 0:
+                    amount_healed = self.heal(-modified_dmg)
                     if amount_healed:
                         if self.engine.player is self.parent:
                             message_color = color.health_recovered
@@ -145,4 +145,4 @@ class Fighter(BaseComponent):
                         )
                     return
 
-        self.hp -= amount_taken
+        self.hp -= modified_dmg
