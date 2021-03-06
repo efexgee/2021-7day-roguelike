@@ -255,7 +255,7 @@ class Heal(Token):
                 if actor is not None:
                     if not context.quiet:
                         context.engine.message_log.add_message(f"{actor.name} heals for {heal}!")
-                    actor.fighter.take_damage(-heal)
+                    actor.fighter.heal(heal)
                 elif not context.quiet:
                     context.engine.message_log.add_message(f"nothing happens")
         elif not context.quiet:

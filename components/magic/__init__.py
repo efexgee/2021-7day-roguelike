@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from random import choice
+
+from collections import Counter
+
 from typing import TYPE_CHECKING
 import copy
 
@@ -82,65 +86,45 @@ class PreparedSpell:
          inputs = []
          for src_idx in connections:
              inputs.append(self.cast_rec(context, src_idx, src_type))
-         return self.spell.tokens[token_idx].process(context, *inputs)
+         try:
+             return self.spell.tokens[token_idx].process(context, *inputs)
+         except:
+             print(f"Failed to process token: {self.spell.tokens[token_idx]} with inputs {inputs}")
+             raise
 
 class Magic(BaseComponent):
     parent: Item
 
     def __init__(self):
         self.known_tokens = set()
-        from spell_generator import random_spell_with_constraints
-        def is_valid(spell):
-            if len(spell.tokens) > 6:
-                return False
-            attributes = spell.attributes()
-            if not attributes.get("requires_target", False):
-                return False
-            if attributes.get("range", 0) < 4 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
-                return False
-            base_damage = attributes.get("base_damage", 0)
-            if base_damage > 3 or base_damage < 1:
-                return False
-            return True
-        self.ranged_spell = random_spell_with_constraints(is_valid)
-        if self.ranged_spell:
-            self.known_tokens.update({t.__class__ for t in self.ranged_spell.tokens})
+        self.ranged_spell = None
+        self.bump_spell = None
+        self.heal_spell = None
 
-        def is_valid(spell):
-            if len(spell.tokens) > 6:
-                return False
-            attributes = spell.attributes()
-            if not attributes.get("requires_target", False):
-                return False
-            if attributes.get("range", 0) != 1.5 or attributes.get("AOE_radius", 0) != 0:
-                return False
-            base_damage = attributes.get("base_damage", 0)
-            if base_damage > 3 or base_damage < 1:
-                return False
-            return True
-        self.bump_spell = random_spell_with_constraints(is_valid)
-        if self.bump_spell:
-            self.known_tokens.update({t.__class__ for t in self.bump_spell.tokens})
+    def fill_default_spell_slots(self):
+        from spell_generator import SHARED_GRIMOIRE
+        self.ranged_spell = choice(SHARED_GRIMOIRE["small_ranged"])
+        self.remember_spell_tokens(self.ranged_spell)
 
-        def is_valid(spell):
-            if len(spell.tokens) > 6:
-                return False
-            attributes = spell.attributes()
-            if not attributes.get("targets_caster", False):
-                return False
-            if attributes.get("AOE_radius", 0) > 0:
-                return False
-            base_damage = attributes.get("base_damage", 0)
-            if base_damage < -10 or base_damage > -1:
-                return False
-            return True
-        self.heal_spell = random_spell_with_constraints(is_valid)
-        if self.heal_spell:
-            self.known_tokens.update({t.__class__ for t in self.heal_spell.tokens})
+        self.bump_spell = choice(SHARED_GRIMOIRE["small_bump"])
+        self.remember_spell_tokens(self.bump_spell)
+
+        self.heal_pell = choice(SHARED_GRIMOIRE["small_heal"])
+        self.remember_spell_tokens(self.heal_spell)
 
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
         if self.bump_spell is not None:
             self.cast_spell(self.bump_spell, (target.x, target.y))
+
+    def assure_castability(self, spell, times):
+        if spell:
+            for (token, count) in Counter(spell.tokens).items():
+                for _ in range(times*count):
+                    self.parent.inventory.add_token(token)
+
+    def remember_spell_tokens(self, spell):
+        if spell:
+            self.known_tokens.update({t.__class__ for t in spell.tokens})
 
     def cast_spell(self, spell: Spell, target: Optional[Actor] = None) -> Optional[ActionOrHandler]:
         prepared_spell = spell.prepare_from_inventory(self.parent.inventory)
