@@ -159,20 +159,19 @@ class MovementAction(ActionWithDirection):
             # Destination is blocked by an entity.
             raise exceptions.Impossible("That way is blocked.")
 
+        removed = set()
         self.entity.move(self.dx, self.dy)
 
-        actor_location_x = self.entity.x
-        actor_location_y = self.entity.y
-        inventory = self.entity.inventory
-
-        removed = set()
         for item in self.engine.game_map.items:
-            if actor_location_x == item.x and actor_location_y == item.y:
+            if self.entity.x == item.x and self.entity.y == item.y:
                 for _ in range(0, item.count):
                     self.entity.inventory.add_token(item.token)
                 removed.add(item)
 
-                self.engine.message_log.add_message(f"You picked up the {item.name}!")
+                if self.entity is self.engine.player:
+                    self.engine.message_log.add_message(f"You picked up the {item.name}!")
+
+
         self.engine.game_map.entities = self.engine.game_map.entities.difference(removed)
 
 

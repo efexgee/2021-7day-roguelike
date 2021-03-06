@@ -58,20 +58,20 @@ class Familiar(BaseAI):
         cost += self.entity.gamemap.tiles["damage"] * 10
         player_dist = self.entity.distance(self.engine.player.x, self.engine.player.y)
         rand_bump = 0
-        if player_dist > 10:
-            rand_bump = 40
-        dist = (np.random.rand(*cost.shape) * 300 + rand_bump).astype(np.int16)
+        if player_dist < 5:
+            dist = (np.random.rand(*cost.shape) * 300).astype(np.int16)
+        else:
+            dist = tcod.path.maxarray(cost.shape)
         are_tokens = False
         for entity in self.entity.gamemap.items:
             are_tokens = True
             dist[entity.x, entity.y] = 0
-        if not are_tokens:
-            dist = (dist / 10).astype(np.int16)
         for entity in self.entity.gamemap.actors:
+            if entity is self.entity or entity is self.engine.player:
+                continue
             cost[entity.x, entity.y] = 1000
             dist[entity.x, entity.y] = 50
-        dist[self.entity.x, self.entity.y] = 1000
-        dist[self.engine.player.x, self.engine.player.y] = 5
+        dist[self.engine.player.x, self.engine.player.y] = 10
         tcod.path.dijkstra2d(dist, cost, 2, 3)
 
         path = tcod.path.hillclimb2d(dist, (self.entity.x, self.entity.y), True, True)[1:].tolist()
