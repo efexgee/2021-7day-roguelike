@@ -126,11 +126,11 @@ def fire_elem():
     ai_cls=HostileEnemy,
     equipment=Equipment(),
     fighter=Fighter(hp=10, base_defense=2, base_power=3, dmg_multipliers={"fire": -0.2}),
-    magicable=Magic(),
+    magic=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=175),
     )
-    fe.magicable.fill_default_spell_slots()
+    fe.magic.fill_default_spell_slots()
     return[fe]
 def giant_rat():
     gr = Actor(
@@ -140,9 +140,9 @@ def giant_rat():
     ai_cls=HostileEnemy,
     equipment=Equipment(),
     fighter=Fighter(hp=6, base_defense=0, base_power=1, dmg_multipliers={"poop": 0.5, "strong coffee": 3.0 }),
-    magicable=Magic(),
+    magic=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=15),
     )
-    gr.magicable.fill_default_spell_slots()
+    gr.magic.fill_default_spell_slots()
     return[gr]
