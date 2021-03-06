@@ -46,9 +46,10 @@ def new_game() -> Engine:
     player.magic.assure_castability(player.magic.spell_inventory.bump_spell, 10)
     player.magic.assure_castability(player.magic.spell_inventory.heal_spell, 10)
 
-    engine = Engine(player=player)
-
     familiar = copy.deepcopy(entity_factories.familiar)
+
+    engine = Engine(player=player, familiar=familiar)
+
 
     engine.game_world = GameWorld(
         engine=engine,

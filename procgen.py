@@ -231,5 +231,6 @@ def generate_dungeon(
         rooms.append(new_room)
 
     dungeon.tiles[dungeon.downstairs_location] = down_stairs
+    engine.familiar.spawn(dungeon, player.x+1, player.y)
 
     return dungeon

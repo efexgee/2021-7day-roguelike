@@ -66,6 +66,7 @@ class Familiar(BaseAI):
         for entity in self.entity.gamemap.items:
             are_tokens = True
             dist[entity.x, entity.y] = 0
+        dist[self.entity.x, self.entity.y] = 50
         for entity in self.entity.gamemap.actors:
             if entity is self.entity or entity is self.engine.player:
                 continue

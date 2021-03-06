@@ -21,10 +21,11 @@ class Engine:
     game_map: GameMap
     game_world: GameWorld
 
-    def __init__(self, player: Actor):
+    def __init__(self, player: Actor, familiar: Actor):
         self.message_log = MessageLog()
         self.mouse_location = (0, 0)
         self.player = player
+        self.familiar = familiar
 
     def check_environment_interactions(self) -> None:
         for actor in set(self.game_map.actors):
