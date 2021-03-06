@@ -53,12 +53,16 @@ class Spell:
         needed = Counter(self.tokens);
         min_count = 10000000
         for (token, count) in needed.items():
+            found = False
             for item in inventory.items:
                 if item.token == token:
                     num = item.count / count
                     if num < min_count:
                         min_count = num
+                    found = True
                     break
+            if not found:
+                 return 0
         return min_count
 
     def prepare_from_inventory(self, inventory) -> Optional[PreparedSpell]:
@@ -138,6 +142,8 @@ class Magic(BaseComponent):
             self.known_tokens.update({t.__class__ for t in spell.tokens})
 
     def cast_spell(self, spell: Spell, target: Optional[Actor] = None) -> Optional[ActionOrHandler]:
+        if not spell.can_cast(self.parent.inventory):
+            return None
         prepared_spell = spell.prepare_from_inventory(self.parent.inventory)
         if prepared_spell is not None:
             context = Context(self.parent, self.engine, target)
