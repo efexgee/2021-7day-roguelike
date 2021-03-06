@@ -25,7 +25,7 @@ class Token:
         return self.name == other.name and set(self.inputs) == set(other.inputs) and set(self.outputs) == set(other.outputs)
 
     def __hash__(self):
-        return hash((self.name, tuple(self.inputs), tuple(self.outputs)))
+        return hash((self.name, tuple(set(self.inputs)), tuple(set(self.outputs))))
 
     def process(self, context, *args):
         assert(False)
@@ -76,7 +76,7 @@ class WithinRange(Token):
 
 class ClosestTarget(Token):
     def __init__(self, range):
-        super().__init__("emerald shard", ["target"], ["target"])
+        super().__init__("jade shard", ["target"], ["target"])
         self.range = range
 
     def process(self, context, targets):

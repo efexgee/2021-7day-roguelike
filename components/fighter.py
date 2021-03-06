@@ -4,6 +4,8 @@ from math import ceil
 
 from typing import TYPE_CHECKING
 
+from entity import Item
+
 import color
 from components.base_component import BaseComponent
 from render_order import RenderOrder
@@ -73,16 +75,27 @@ class Fighter(BaseComponent):
             self.parent.ai = None
 
         drop_targets = []
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
+        for dx in range(-2, 3):
+            for dy in range(-2, 3):
                 x = self.parent.x + dx
                 y = self.parent.y + dy
-                if self.engine.game_map.tiles["walkable"][x,y]:
+                if x >= 0 and x < self.engine.game_map.width and y >= 0 and y < self.engine.game_map.height and self.engine.game_map.tiles["walkable"][x,y]:
                     drop_targets.append((x,y))
         for item in self.parent.inventory.items:
             (x,y) = choice(drop_targets)
             item.x = x
             item.y = y
+            self.engine.game_map.queue_add_entity(item)
+        for spell in self.parent.magic.spell_inventory.all_spells():
+            (x,y) = choice(drop_targets)
+            item = Item(
+                x=x,
+                y=y,
+                char = "~",
+                color = (255, 0, 255),
+                name = "A spell",
+                spell = spell,
+            )
             self.engine.game_map.queue_add_entity(item)
         self.parent.inventory.items.clear()
 

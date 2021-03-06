@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar
+from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI
 from components import consumable, equippable
 from components.equipment import Equipment
 from components.fighter import Fighter
@@ -60,7 +60,7 @@ def mushroom():
     char="m",
     color=(63, 127, 63),
     name="Mushroom",
-    ai_cls=DummyAI,
+    ai_cls=lambda parent: SpawnerAI(parent, 0.1),
     equipment=Equipment(),
     fighter=Fighter(hp=1, base_defense=0, base_power=3),
     inventory=Inventory(),

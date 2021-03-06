@@ -164,8 +164,11 @@ class MovementAction(ActionWithDirection):
 
         for item in self.engine.game_map.items:
             if self.entity.x == item.x and self.entity.y == item.y:
-                for _ in range(0, item.count):
-                    self.entity.inventory.add_token(item.token)
+                if item.token:
+                    for _ in range(0, item.count):
+                        self.entity.inventory.add_token(item.token)
+                elif item.spell:
+                    self.entity.magic.spell_inventory.other_spell.append(item.spell)
                 removed.add(item)
 
                 if self.entity is self.engine.player:

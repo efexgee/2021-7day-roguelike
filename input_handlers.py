@@ -588,8 +588,12 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_p:
             action = cast_action(player, player.magic.spell_inventory.heal_spell, self.engine)
         elif key == tcod.event.K_r:
-            spell = random_spell([i.token for i in player.inventory.items])
-            action = cast_action(player, spell, self.engine)
+            if player.magic.spell_inventory.other_spell:
+                action = cast_action(player, player.magic.spell_inventory.other_spell[0], self.engine)
+        elif key == tcod.event.K_w:
+            if player.magic.spell_inventory.other_spell:
+                spell = player.magic.spell_inventory.other_spell.pop()
+                player.magic.spell_inventory.other_spell.insert(0, spell)
 
         # No valid key was pressed
         return action

@@ -46,9 +46,10 @@ def new_game() -> Engine:
     player.magic.assure_castability(player.magic.spell_inventory.bump_spell, 10)
     player.magic.assure_castability(player.magic.spell_inventory.heal_spell, 10)
 
-    engine = Engine(player=player)
-
     familiar = copy.deepcopy(entity_factories.familiar)
+
+    engine = Engine(player=player, familiar=familiar)
+
 
     engine.game_world = GameWorld(
         engine=engine,
@@ -61,7 +62,6 @@ def new_game() -> Engine:
 
     engine.game_world.generate_floor()
     engine.update_fov()
-    familiar.spawn(engine.game_map, player.x+1, player.y)
 
     engine.message_log.add_message(
         "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
