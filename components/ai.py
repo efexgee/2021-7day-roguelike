@@ -49,6 +49,48 @@ class BaseAI(Action):
         return [(index[0], index[1]) for index in path]
 
 
+class Familiar(BaseAI):
+    def __init__(self, entity: Actor):
+        self.entity = entity
+
+    def next_step(self):
+        cost = np.array(self.entity.gamemap.tiles["walkable"], dtype=np.int16)
+        cost += self.entity.gamemap.tiles["damage"] * 10
+        player_dist = self.entity.distance(self.engine.player.x, self.engine.player.y)
+        rand_bump = 0
+        if player_dist < 5:
+            dist = (np.random.rand(*cost.shape) * 300).astype(np.int16)
+        else:
+            dist = tcod.path.maxarray(cost.shape)
+        are_tokens = False
+        for entity in self.entity.gamemap.items:
+            are_tokens = True
+            dist[entity.x, entity.y] = 0
+        for entity in self.entity.gamemap.actors:
+            if entity is self.entity or entity is self.engine.player:
+                continue
+            cost[entity.x, entity.y] = 1000
+            dist[entity.x, entity.y] = 50
+        dist[self.engine.player.x, self.engine.player.y] = 10
+        tcod.path.dijkstra2d(dist, cost, 2, 3)
+
+        path = tcod.path.hillclimb2d(dist, (self.entity.x, self.entity.y), True, True)[1:].tolist()
+        return [(index[0], index[1]) for index in path]
+
+    def perform(self) -> None:
+        for item in self.entity.inventory.items:
+            for _ in range(item.count):
+                self.engine.player.inventory.add_token(item.token)
+        self.entity.inventory.items.clear()
+        path = self.next_step()
+        if path:
+            dest_x, dest_y = path.pop(0)
+            return MovementAction(
+                self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
+            ).perform()
+
+        return WaitAction(self.entity).perform()
+
 class DummyAI(BaseAI):
     def __init__(self, entity: Actor):
         pass
@@ -94,7 +136,7 @@ class RangedHostileEnemy(BaseAI):
         distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
         if self.engine.game_map.visible[self.entity.x, self.entity.y]:
-            spell = self.entity.magicable.ranged_spell
+            spell = self.entity.magic.spell_inventory.ranged_spell
             if self.spell_fn:
                 spell = self.spell_fn(self.entity)
             if spell and spell.can_cast(self.entity.inventory):

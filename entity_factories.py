@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI
+from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar
 from components import consumable, equippable
 from components.equipment import Equipment
 from components.fighter import Fighter
@@ -22,10 +22,22 @@ player = Actor(
             "poop": 0.8,
             "strong coffee": -1.0}
     ),
-    magicable=Magic(),
+    magic=Magic(),
     inventory=Inventory(),
     level=Level(level_up_base=200),
 )
+familiar = Actor(
+    char="f",
+    color=(0, 0, 0),
+    name="Canny Black Cat",
+    ai_cls=Familiar,
+    equipment=Equipment(),
+    fighter=Fighter(hp=30, base_defense=1, base_power=2),
+    magic=Magic(),
+    inventory=Inventory(),
+    level=Level(level_up_base=200),
+)
+familiar.blocks_movement = False
 
 def orc():
   o = Actor(
@@ -36,10 +48,10 @@ def orc():
     equipment=Equipment(),
     fighter=Fighter(hp=10, base_defense=0, base_power=3),
     inventory=Inventory(),
-    magicable=Magic(),
+    magic=Magic(),
     level=Level(xp_given=35),
     )
-  o.magicable.fill_default_spell_slots()
+  o.magic.fill_default_spell_slots()
   return [o]
 
 
@@ -50,11 +62,11 @@ def mushroom():
     name="Mushroom",
     ai_cls=DummyAI,
     equipment=Equipment(),
-    fighter=Fighter(hp=5, base_defense=0, base_power=3),
+    fighter=Fighter(hp=1, base_defense=0, base_power=3),
     inventory=Inventory(),
-    magicable=Magic(),
+    magic=Magic(),
     level=Level(xp_given=35),
-    ) for _ in range(0, 5)]
+    ) for _ in range(0, 7)]
 
 def imp_spell(imp):
     def is_valid(spell):
@@ -73,7 +85,7 @@ def imp():
     equipment=Equipment(),
     fighter=Fighter(hp=5, base_defense=0, base_power=3),
     inventory=Inventory(),
-    magicable=Magic(),
+    magic=Magic(),
     level=Level(xp_given=35),
     )]
 
@@ -86,10 +98,10 @@ def goblin_wizard():
     equipment=Equipment(),
     fighter=Fighter(hp=5, base_defense=0, base_power=3),
     inventory=Inventory(),
-    magicable=Magic(),
+    magic=Magic(),
     level=Level(xp_given=35),
     )
-    g.magicable.fill_default_spell_slots()
+    g.magic.fill_default_spell_slots()
     return [g]
 
 def troll():
@@ -100,11 +112,11 @@ def troll():
     ai_cls=HostileEnemy,
     equipment=Equipment(),
     fighter=Fighter(hp=16, base_defense=1, base_power=4),
-    magicable=Magic(),
+    magic=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=100),
     )
-    t.magicable.fill_default_spell_slots()
+    t.magic.fill_default_spell_slots()
     return [t]
 def fire_elem():
     fe = Actor(

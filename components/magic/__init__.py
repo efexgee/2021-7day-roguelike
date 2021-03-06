@@ -7,6 +7,7 @@ from collections import Counter
 from typing import TYPE_CHECKING
 import copy
 
+from spell_inventory import SpellInventory
 from components.base_component import BaseComponent
 import color
 import actions
@@ -47,6 +48,18 @@ class Spell:
     def can_cast(self, inventory) -> bool:
         # FIXME: Um, don't copy everything?
         return self.prepare_from_inventory(copy.deepcopy(inventory)) is not None
+
+    def max_casts(self, inventory):
+        needed = Counter(self.tokens);
+        min_count = 10000000
+        for (token, count) in needed.items():
+            for item in inventory.items:
+                if item.token == token:
+                    num = item.count / count
+                    if num < min_count:
+                        min_count = num
+                    break
+        return min_count
 
     def prepare_from_inventory(self, inventory) -> Optional[PreparedSpell]:
         for token in self.tokens:
@@ -97,24 +110,22 @@ class Magic(BaseComponent):
 
     def __init__(self):
         self.known_tokens = set()
-        self.ranged_spell = None
-        self.bump_spell = None
-        self.heal_spell = None
+        self.spell_inventory = SpellInventory(self)
 
     def fill_default_spell_slots(self):
         from spell_generator import SHARED_GRIMOIRE
-        self.ranged_spell = choice(SHARED_GRIMOIRE["small_ranged"])
-        self.remember_spell_tokens(self.ranged_spell)
+        self.spell_inventory.ranged_spell = choice(SHARED_GRIMOIRE["small_ranged"])
+        self.remember_spell_tokens(self.spell_inventory.ranged_spell)
 
-        self.bump_spell = choice(SHARED_GRIMOIRE["small_bump"])
-        self.remember_spell_tokens(self.bump_spell)
+        self.spell_inventory.bump_spell = choice(SHARED_GRIMOIRE["small_bump"])
+        self.remember_spell_tokens(self.spell_inventory.bump_spell)
 
-        self.heal_pell = choice(SHARED_GRIMOIRE["small_heal"])
-        self.remember_spell_tokens(self.heal_spell)
+        self.spell_inventory.heal_spell = choice(SHARED_GRIMOIRE["small_heal"])
+        self.remember_spell_tokens(self.spell_inventory.heal_spell)
 
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
-        if self.bump_spell is not None:
-            self.cast_spell(self.bump_spell, (target.x, target.y))
+        if self.spell_inventory.bump_spell is not None:
+            self.cast_spell(self.spell_inventory.bump_spell, (target.x, target.y))
 
     def assure_castability(self, spell, times):
         if spell:

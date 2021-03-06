@@ -584,9 +584,9 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
         elif key == tcod.event.K_f:
-            action = cast_action(player, player.magicable.ranged_spell, self.engine)
+            action = cast_action(player, player.magic.spell_inventory.ranged_spell, self.engine)
         elif key == tcod.event.K_p:
-            action = cast_action(player, player.magicable.heal_spell, self.engine)
+            action = cast_action(player, player.magic.spell_inventory.heal_spell, self.engine)
         elif key == tcod.event.K_r:
             spell = random_spell([i.token for i in player.inventory.items])
             action = cast_action(player, spell, self.engine)

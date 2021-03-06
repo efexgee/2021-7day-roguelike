@@ -53,8 +53,8 @@ class ItemAction(Action):
         """Invoke the items ability, this action will be given to provide context."""
         if self.item.consumable:
             self.item.consumable.activate(self)
-        if self.item.magicable:
-            self.item.magicable.activate(self)
+        if self.item.magic:
+            self.item.magic.activate(self)
 
 
 class DropItem(ItemAction):
@@ -84,7 +84,7 @@ class CastRandomSpellAction(Action):
         self.caster = entity
 
     def perform(self) -> None:
-        self.caster.magicable.cast_random_spell()
+        self.caster.magic.cast_random_spell()
 
 class CastSpellAction(Action):
     def __init__(self, entity: Actor, spell: Spell, target: Optional[(int, int)]):
@@ -93,7 +93,7 @@ class CastSpellAction(Action):
         self.target = target
 
     def perform(self) -> None:
-        self.caster.magicable.cast_spell(self.spell, self.target)
+        self.caster.magic.cast_spell(self.spell, self.target)
 
 
 class TakeStairsAction(Action):
@@ -142,7 +142,7 @@ class MeleeAction(ActionWithDirection):
         if not target:
             raise exceptions.Impossible("Nothing to attack.")
 
-        self.entity.magicable.cast_bump_spell(target)
+        self.entity.magic.cast_bump_spell(target)
 
 
 class MovementAction(ActionWithDirection):
@@ -159,26 +159,25 @@ class MovementAction(ActionWithDirection):
             # Destination is blocked by an entity.
             raise exceptions.Impossible("That way is blocked.")
 
+        removed = set()
         self.entity.move(self.dx, self.dy)
 
-        actor_location_x = self.entity.x
-        actor_location_y = self.entity.y
-        inventory = self.entity.inventory
-
-        removed = set()
         for item in self.engine.game_map.items:
-            if actor_location_x == item.x and actor_location_y == item.y:
+            if self.entity.x == item.x and self.entity.y == item.y:
                 for _ in range(0, item.count):
                     self.entity.inventory.add_token(item.token)
                 removed.add(item)
 
-                self.engine.message_log.add_message(f"You picked up the {item.name}!")
+                if self.entity is self.engine.player:
+                    self.engine.message_log.add_message(f"You picked up the {item.name}!")
+
+
         self.engine.game_map.entities = self.engine.game_map.entities.difference(removed)
 
 
 class BumpAction(ActionWithDirection):
     def perform(self) -> None:
-        if self.target_actor:
+        if self.target_actor and self.target_actor.blocks_movement:
             return MeleeAction(self.entity, self.dx, self.dy).perform()
 
         else:
