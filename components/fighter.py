@@ -1,5 +1,6 @@
 from __future__ import annotations
 from random import choice
+from math import ceil
 
 from typing import TYPE_CHECKING
 
@@ -14,15 +15,15 @@ if TYPE_CHECKING:
 class Fighter(BaseComponent):
     parent: Actor
 
-    def __init__(self, hp: int, base_defense: int, base_power: int, resistances: dict[str,int]=None):
+    def __init__(self, hp: int, base_defense: int, base_power: int, dmg_multipliers: dict[str,int]=None):
         self.max_hp = hp
         self._hp = hp
         self.base_defense = base_defense
         self.base_power = base_power
-        if resistances:
-            self.resistances = resistances
+        if dmg_multipliers:
+            self.dmg_multipliers = dmg_multipliers
         else:
-            self.resistances = {}
+            self.dmg_multipliers = {}
 
     @property
     def hp(self) -> int:
@@ -108,22 +109,40 @@ class Fighter(BaseComponent):
     def take_damage(self, amount_dealt: int, type: str=None) -> None:
         amount_taken = amount_dealt
         if type:
-            damage_modifier = self.resistances.get(type)
-            if damage_modifier:
-                # Resistance > 100% will heal the target
-                adjustment_amount = int(amount_dealt * damage_modifier)
-                amount_taken = amount_dealt - adjustment_amount
+            dmg_multiplier = self.dmg_multipliers.get(type)
+            if dmg_multiplier:
+                amount_taken = ceil(amount_dealt * dmg_multiplier)
+                difference = amount_taken - amount_dealt
                 if amount_taken >= 0 and amount_taken < amount_dealt:
+                    if self.engine.player is self.parent:
+                        message_color = color.player_resists
+                    else:
+                        message_color = color.enemy_resists
                     self.parent.gamemap.engine.message_log.add_message(
-                        f"{self.parent.name} takes only {amount_taken} damage."
+                        f"{self.parent.name} only takes {amount_taken} damage.",
+                        message_color
                     )
+                if difference > 0:
+                    if self.engine.player is self.parent:
+                        message_color = color.player_vulnerable
+                    else:
+                        message_color = color.enemy_vulnerable
+                    self.parent.gamemap.engine.message_log.add_message(
+                        f"{self.parent.name} takes {difference} additional damage!",
+                        message_color
+                    )
+                # It's a heal instead.
                 if amount_taken < 0:
-                    self.parent.gamemap.engine.message_log.add_message(
-                        f"{self.parent.name} heals for {-amount_taken} HP!"
-                    )
-                if adjustment_amount < 0:
-                    self.parent.gamemap.engine.message_log.add_message(
-                        f"{self.parent.name} takes an additional {-adjustment_amount} damage!"
-                    )
+                    amount_healed = self.heal(-amount_taken)
+                    if amount_healed:
+                        if self.engine.player is self.parent:
+                            message_color = color.health_recovered
+                        else:
+                            message_color = color.enemy_health_recovered
+                        self.parent.gamemap.engine.message_log.add_message(
+                            f"{self.parent.name} heals for {amount_healed}!",
+                            message_color
+                        )
+                    return
 
         self.hp -= amount_taken

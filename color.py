@@ -9,6 +9,9 @@ status_effect_applied = (0x3F, 0xFF, 0x3F)
 descend = (0x9F, 0x3F, 0xFF)
 magic = (0xE0, 0xE0, 0xE0)
 
+player_dmg = enemy_atk
+enemy_dmg = player_atk
+
 valid_aoe = (0xFF, 0x0, 0x0)
 invalid_aoe = (0x10, 0x0, 0x0)
 
@@ -21,6 +24,12 @@ error = (0xFF, 0x40, 0x40)
 
 welcome_text = (0x20, 0xA0, 0xFF)
 health_recovered = (0x0, 0xFF, 0x0)
+
+player_resists = enemy_dmg
+enemy_resists = player_dmg
+player_vulnerable = player_dmg
+enemy_vulnerable = enemy_dmg
+enemy_health_recovered = player_dmg
 
 bar_text = white
 bar_filled = (0x0, 0x60, 0x0)
