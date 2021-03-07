@@ -130,7 +130,7 @@ class ActionWithDirection(Action):
     @property
     def target_actor(self) -> Optional[Actor]:
         """Return the actor at this actions destination."""
-        return self.engine.game_map.get_actor_at_location(*self.dest_xy)
+        return self.engine.game_map.get_blocking_entity_at_location(*self.dest_xy)
 
     def perform(self) -> None:
         raise NotImplementedError()
