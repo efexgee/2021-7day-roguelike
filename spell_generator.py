@@ -9,7 +9,7 @@ def random_small_ranged():
     def is_valid(spell):
         if len(spell.tokens) > 6:
             return False
-        attributes = spell.attributes()
+        attributes = spell.attributes
         if not attributes.get("requires_target", False):
             return False
         if attributes.get("range", 0) < 4 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
@@ -24,7 +24,7 @@ def random_small_bump():
     def is_valid(spell):
         if len(spell.tokens) > 6:
             return False
-        attributes = spell.attributes()
+        attributes = spell.attributes
         if not attributes.get("requires_target", False):
             return False
         if attributes.get("range", 0) != 1.5 or attributes.get("AOE_radius", 0) != 0:
@@ -39,7 +39,7 @@ def random_small_heal():
     def is_valid(spell):
         if len(spell.tokens) > 6:
             return False
-        attributes = spell.attributes()
+        attributes = spell.attributes
         if not attributes.get("targets_caster", False):
             return False
         if attributes.get("AOE_radius", 0) > 0:

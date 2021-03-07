@@ -605,7 +605,7 @@ def cast_action(player, spell, engine):
 
     if spell.can_cast(player.inventory):
         if spell.needs_target():
-            attributes = spell.attributes()
+            attributes = spell.attributes
             def callback(xy):
                 if not engine.game_map.visible[xy]:
                     engine.message_log.add_message("You cannot target an area that you cannot see.")

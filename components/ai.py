@@ -164,7 +164,7 @@ class RangedHostileEnemy(BaseAI):
         if self.spell_fn:
             spell = self.spell_fn(self.entity)
         if spell and spell.can_cast(self.entity.inventory):
-            range = spell.attributes().get("range", 0)
+            range = spell.attributes.get("range", 0)
             if distance <= 2:
                 path = self.engine.pathing.path_along_flow(self.engine.pathing.anti_player_flow, self.entity.x, self.entity.y)
             elif distance <= range:

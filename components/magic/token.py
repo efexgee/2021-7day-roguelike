@@ -104,6 +104,7 @@ class MadeOfWhatever(Token):
         super().__init__(name, [], ["material"])
 
     def process(self, context):
+        context.attributes["material"] = self.material
         return self.material
 
 #class DoubleMaterial(Token):
@@ -172,6 +173,7 @@ class BallOf(Token):
             radius = 12
         context.attributes["base_damage"] = damage
         context.attributes["AOE_radius"] = radius
+        context.attributes["spell_shape"] = "ball"
 
         if context.dry_run:
             return
@@ -216,6 +218,7 @@ class BeamOf(Token):
             damage *= 10
         context.attributes["base_damage"] = damage
         context.attributes["AOE_radius"] = 0
+        context.attributes["spell_shape"] = "beam"
 
         if context.dry_run:
             return
@@ -247,6 +250,7 @@ class Heal(Token):
         elif scale == "stupendous":
             heal = 100
         context.attributes["base_damage"] = -heal
+        context.attributes["is_heal"] = True
 
         if context.dry_run:
             return
