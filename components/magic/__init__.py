@@ -29,6 +29,7 @@ class Spell:
     def __init__(self, tokens, connections):
         self.tokens = tokens
         self.connections  = connections
+        self.attributes = self.calculate_attributes()
 
     def __str__(self):
         return ", ".join([t.name for t in self.tokens])
@@ -39,15 +40,21 @@ class Spell:
                 return True
         return False
 
-    def attributes(self):
+    def calculate_attributes(self):
         context = Context(None, None, None)
         context.dry_run = True
         PreparedSpell(self).cast(context)
         return context.attributes
 
+    def name(self):
+        attributes = self.attributes
+        if attributes.get("spell_shape"):
+            return f"{attributes.get('scale', 'small')} {attributes.get('spell_shape')} of {attributes.get('material')}"
+        elif attributes.get("is_heal"):
+            return f"{attributes.get('scale', 'small')} heal"
+
     def can_cast(self, inventory) -> bool:
-        # FIXME: Um, don't copy everything?
-        return self.prepare_from_inventory(copy.deepcopy(inventory)) is not None
+        return self.prepare_from_inventory(inventory, True) is not None
 
     def max_casts(self, inventory):
         needed = Counter(self.tokens);
@@ -65,18 +72,26 @@ class Spell:
                  return 0
         return min_count
 
-    def prepare_from_inventory(self, inventory) -> Optional[PreparedSpell]:
+    def prepare_from_inventory(self, inventory, dry_run = False) -> Optional[PreparedSpell]:
+        consumed = {}
         for token in self.tokens:
             found = False
             for item in inventory.items:
-                if item.token == token and item.count > 0:
-                    item.count -= 1
-                    if item.count <= 0:
-                        inventory.items.remove(item)
+                if item.token == token and item.count-consumed.get(token, 0) > 0:
+                    consumed[token] = consumed.get(token, 0) + 1
                     found = True
                     break
             if not found:
                 return None
+        if not dry_run:
+            removed = []
+            for item in inventory.items:
+                if item.token in consumed:
+                    item.count -= consumed[item.token]
+                    if item.count <= 0:
+                        removed.append(item)
+            for item in removed:
+                inventory.items.remove(item)
         return PreparedSpell(self)
 
 class PreparedSpell:

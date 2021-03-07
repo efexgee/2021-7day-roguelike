@@ -73,7 +73,7 @@ def mushroom():
 
 def imp_spell(imp):
     def is_valid(spell):
-        base_damage = spell.attributes().get("base_damage", 0)
+        base_damage = spell.attributes.get("base_damage", 0)
         if base_damage > 20:
             return False
         return True
