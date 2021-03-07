@@ -12,6 +12,8 @@ from message_log import MessageLog
 import render_functions
 from tile_types import TileLabel
 
+from pathing import PathingCache
+
 if TYPE_CHECKING:
     from entity import Actor
     from game_map import GameMap, GameWorld
@@ -26,6 +28,7 @@ class Engine:
         self.mouse_location = (0, 0)
         self.player = player
         self.familiar = familiar
+        self.pathing = PathingCache(self)
 
     def check_environment_interactions(self) -> None:
         for actor in set(self.game_map.actors):

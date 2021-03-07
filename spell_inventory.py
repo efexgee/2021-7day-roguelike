@@ -5,6 +5,7 @@ class SpellInventory:
     def __init__(self, parent):
         self.ranged_spell = None
         self.bump_spell = None
+        self.bump_spell_free = None
         self.heal_spell = None
         self.other_spell = []
         self.parent = parent

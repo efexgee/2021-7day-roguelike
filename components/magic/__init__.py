@@ -127,9 +127,14 @@ class Magic(BaseComponent):
         self.spell_inventory.heal_spell = choice(SHARED_GRIMOIRE["small_heal"])
         self.remember_spell_tokens(self.spell_inventory.heal_spell)
 
+        self.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["bump_spell_free"]
+
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
         if self.spell_inventory.bump_spell is not None:
-            self.cast_spell(self.spell_inventory.bump_spell, (target.x, target.y))
+            if self.spell_inventory.bump_spell.can_cast(self.parent.inventory):
+                return self.cast_spell(self.spell_inventory.bump_spell, (target.x, target.y))
+            elif self.spell_inventory.bump_spell_free:
+                return self.cast_spell(self.spell_inventory.bump_spell_free, (target.x, target.y), True)
 
     def assure_castability(self, spell, times):
         if spell:
@@ -141,10 +146,14 @@ class Magic(BaseComponent):
         if spell:
             self.known_tokens.update({t.__class__ for t in spell.tokens})
 
-    def cast_spell(self, spell: Spell, target: Optional[Actor] = None) -> Optional[ActionOrHandler]:
-        if not spell.can_cast(self.parent.inventory):
+    def cast_spell(self, spell: Spell, target: Optional[Actor] = None, ignore_cost = False) -> Optional[ActionOrHandler]:
+        if not ignore_cost and not spell.can_cast(self.parent.inventory):
             return None
-        prepared_spell = spell.prepare_from_inventory(self.parent.inventory)
+        prepared_spell = None
+        if not ignore_cost:
+            prepared_spell = spell.prepare_from_inventory(self.parent.inventory)
+        else:
+            prepared_spell = PreparedSpell(spell)
         if prepared_spell is not None:
             context = Context(self.parent, self.engine, target)
             if self.parent.name == "Player":

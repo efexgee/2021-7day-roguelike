@@ -1,5 +1,5 @@
 from random import Random, randint, shuffle
-from components.magic.token import all_tokens, Token
+from components.magic.token import *
 from components.magic import Spell
 
 SHARED_GRIMOIRE = {}
@@ -115,4 +115,19 @@ def fill_shared_grimoire():
     SHARED_GRIMOIRE["small_ranged"] = [random_small_ranged() for _ in range(10)]
     SHARED_GRIMOIRE["small_bump"] = [random_small_bump() for _ in range(10)]
     SHARED_GRIMOIRE["small_heal"] = [random_small_heal() for _ in range(10)]
-
+    SHARED_GRIMOIRE["bump_spell_free"] = Spell(
+        [
+            AllActors(),
+            MeleeRange(),
+            MadeOfPoop(),
+            Small(),
+            BeamOf(),
+        ],
+        [
+            [],
+            [0],
+            [],
+            [],
+            [2, 3, 1],
+        ]
+    )

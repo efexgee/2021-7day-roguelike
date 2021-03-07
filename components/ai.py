@@ -56,31 +56,6 @@ class Familiar(BaseAI):
     def __init__(self, entity: Actor):
         self.entity = entity
 
-    def next_step(self):
-        cost = np.array(self.entity.gamemap.tiles["walkable"], dtype=np.int16)
-        cost += self.entity.gamemap.tiles["damage"] * 10
-        player_dist = self.entity.distance(self.engine.player.x, self.engine.player.y)
-        rand_bump = 0
-        if player_dist < 5:
-            dist = (np.random.rand(*cost.shape) * 300).astype(np.int16)
-        else:
-            dist = tcod.path.maxarray(cost.shape)
-        are_tokens = False
-        for entity in self.entity.gamemap.items:
-            are_tokens = True
-            dist[entity.x, entity.y] = 0
-        dist[self.entity.x, self.entity.y] = 50
-        for entity in self.entity.gamemap.actors:
-            if entity is self.entity or entity is self.engine.player:
-                continue
-            cost[entity.x, entity.y] = 1000
-            dist[entity.x, entity.y] = 50
-        dist[self.engine.player.x, self.engine.player.y] = 10
-        tcod.path.dijkstra2d(dist, cost, 2, 3)
-
-        path = tcod.path.hillclimb2d(dist, (self.entity.x, self.entity.y), True, True)[1:].tolist()
-        return [(index[0], index[1]) for index in path]
-
     def perform(self) -> None:
         for item in self.entity.inventory.items:
             for _ in range(item.count):
@@ -89,7 +64,26 @@ class Familiar(BaseAI):
             self.engine.player.magic.spell_inventory.other_spell.append(spell)
         self.entity.magic.spell_inventory.other_spell.clear()
         self.entity.inventory.items.clear()
-        path = self.next_step()
+
+        player_weight = 1
+        token_weight = 1
+        wiggle_weight = 1
+        player_dist = self.entity.distance(self.engine.player.x, self.engine.player.y)
+        if player_dist < 4:
+            player_weight = 1
+            token_weight = 10
+            wiggle_weight = 10
+        elif player_dist < 10:
+            player_weight = 1
+            token_weight = 1
+            wiggle_weight = 0
+        else:
+            player_weight = 100
+            token_weight = 0
+            wiggle_weight = 0
+
+        dist = self.engine.pathing.token_flow * token_weight + self.engine.pathing.player_flow * player_weight + (self.engine.pathing.random_flow + 100) * wiggle_weight
+        path = self.engine.pathing.path_along_flow(dist, self.entity.x, self.entity.y)
         if path:
             dest_x, dest_y = path.pop(0)
             return MovementAction(
@@ -131,7 +125,6 @@ class SpawnerAI(BaseAI):
 class HostileEnemy(BaseAI):
     def __init__(self, entity: Actor):
         super().__init__(entity)
-        self.path: List[Tuple[int, int]] = []
 
     def perform(self) -> None:
         target = self.engine.player
@@ -139,15 +132,17 @@ class HostileEnemy(BaseAI):
         dy = target.y - self.entity.y
         distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
+        path = None
         if self.engine.game_map.visible[self.entity.x, self.entity.y]:
             if distance <= 1:
                 return MeleeAction(self.entity, dx, dy).perform()
 
-            self.path = self.get_path_to(target.x, target.y)
+            flow = self.engine.pathing.player_flow 
+            path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
 
-        if self.path:
-            dest_x, dest_y = self.path.pop(0)
-            return MovementAction(
+        if path:
+            dest_x, dest_y = path.pop(0)
+            return BumpAction(
                 self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
             ).perform()
 
@@ -156,7 +151,6 @@ class HostileEnemy(BaseAI):
 class RangedHostileEnemy(BaseAI):
     def __init__(self, entity: Actor, spell_fn = None):
         super().__init__(entity)
-        self.path: List[Tuple[int, int]] = []
         self.spell_fn = spell_fn
 
     def perform(self) -> None:
@@ -165,20 +159,29 @@ class RangedHostileEnemy(BaseAI):
         dy = target.y - self.entity.y
         distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
-        if self.engine.game_map.visible[self.entity.x, self.entity.y]:
-            spell = self.entity.magic.spell_inventory.ranged_spell
-            if self.spell_fn:
-                spell = self.spell_fn(self.entity)
-            if spell and spell.can_cast(self.entity.inventory):
-                range = spell.attributes().get("range", 0)
-                if distance <= range:
-                    return CastSpellAction(self.entity, spell, (target.x, target.y)).perform()
+        path = None
+        spell = self.entity.magic.spell_inventory.ranged_spell
+        if self.spell_fn:
+            spell = self.spell_fn(self.entity)
+        if spell and spell.can_cast(self.entity.inventory):
+            range = spell.attributes().get("range", 0)
+            if distance <= 2:
+                path = self.engine.pathing.path_along_flow(self.engine.pathing.anti_player_flow, self.entity.x, self.entity.y)
+            elif distance <= range:
+                return CastSpellAction(self.entity, spell, (target.x, target.y)).perform()
+            else:
+                if self.engine.game_map.visible[self.entity.x, self.entity.y]:
+                    path = self.engine.pathing.path_along_flow(self.engine.pathing.player_flow, self.entity.x, self.entity.y)
+                else:
+                    path = self.engine.pathing.path_along_flow(self.engine.pathing.random_flow, self.entity.x, self.entity.y)
+        else:
+            flow = self.engine.pathing.mushroom_flow + self.engine.pathing.token_flow
+            flow[self.entity.x, self.entity.y] = 1000
+            path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
 
-            self.path = self.get_path_to(target.x, target.y)
-
-        if self.path:
-            dest_x, dest_y = self.path.pop(0)
-            return MovementAction(
+        if path:
+            dest_x, dest_y = path.pop(0)
+            return BumpAction(
                 self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
             ).perform()
 
