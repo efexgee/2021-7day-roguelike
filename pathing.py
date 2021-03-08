@@ -10,6 +10,7 @@ class PathingCache:
         self.anti_player_flow = None
         self.random_flow = None
         self.mushroom_flow = None
+        self.squirrel_flow = None
 
     def update_flow_maps(self):
         self.update_token_flow()
@@ -17,6 +18,7 @@ class PathingCache:
         self.update_anti_player_flow()
         self.update_random_flow()
         self.update_mushroom_flow()
+        self.update_squirrel_flow()
 
 
     def default_cost(self):
@@ -34,6 +36,17 @@ class PathingCache:
             dist[entity.x, entity.y] = 50
         tcod.path.dijkstra2d(dist, cost, 2, 3)
         self.token_flow = dist
+
+    def update_squirrel_flow(self):
+        cost = self.default_cost()
+        dist = np.full(cost.shape, 1000)
+        for entity in self.engine.game_map.actors:
+            if "Squirrel" in entity.name:
+                dist[entity.x, entity.y] = 0
+            else:
+                cost[entity.x, entity.y] = 1000
+        tcod.path.dijkstra2d(dist, cost, 2, 3)
+        self.squirrel_flow = dist
 
     def update_player_flow(self):
         cost = self.default_cost()
@@ -61,7 +74,7 @@ class PathingCache:
         cost = self.default_cost()
         dist = np.full(cost.shape, 100000)
         for entity in self.engine.game_map.actors:
-            if entity.name == "Mushroom":
+            if "Mushroom" in entity.name:
                 dist[entity.x, entity.y] = 0
         tcod.path.dijkstra2d(dist, cost, 2, 3)
         self.mushroom_flow = dist

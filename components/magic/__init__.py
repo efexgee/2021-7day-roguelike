@@ -155,6 +155,8 @@ class Magic(BaseComponent):
                 return self.cast_spell(self.spell_inventory.bump_spell, (target.x, target.y))
             elif self.spell_inventory.bump_spell_free:
                 return self.cast_spell(self.spell_inventory.bump_spell_free, (target.x, target.y), True)
+        elif self.spell_inventory.bump_spell_free:
+            return self.cast_spell(self.spell_inventory.bump_spell_free, (target.x, target.y), True)
 
     def assure_castability(self, spell, times):
         if spell:
