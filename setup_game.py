@@ -45,6 +45,7 @@ def new_game() -> Engine:
     player.magic.assure_castability(player.magic.spell_inventory.ranged_spell, 10)
     player.magic.assure_castability(player.magic.spell_inventory.bump_spell, 10)
     player.magic.assure_castability(player.magic.spell_inventory.heal_spell, 10)
+    player.magic.assure_castability(player.magic.spell_inventory.summon_spell, 10)
 
     familiar = copy.deepcopy(entity_factories.familiar)
 

@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI
+from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI, Neutral
 from components import consumable, equippable
 from components.equipment import Equipment
 from components.fighter import Fighter
@@ -155,3 +155,17 @@ def giant_rat():
         gr.magic.fill_default_spell_slots()
         rat_list.append(gr)
     return rat_list
+
+def squirrel():
+    sq = Actor(
+    char=".",
+    color=(127, 127, 0),
+    name="Squirrel (super harmless)",
+    ai_cls=Neutral,
+    equipment=Equipment(),
+    fighter=Fighter(hp=1, base_defense=2, base_power=3, dmg_multipliers={"fire": -0.2}),
+    magic=Magic(),
+    inventory=Inventory(),
+    level=Level(xp_given=175),
+    )
+    return[sq]

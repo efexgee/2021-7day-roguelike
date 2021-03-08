@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import traceback
+import time
 
 import tcod
 
@@ -37,6 +38,12 @@ def main() -> None:
         try:
             while True:
                 root_console.clear()
+                if isinstance(handler, input_handlers.EventHandler):
+                    if handler.engine.spell_overlay.active_effects:
+                        handler.on_render(console=root_console)
+                        if handler.engine.spell_overlay.on_render(console=root_console):
+                            context.present(root_console)
+                            time.sleep(0.25)
                 handler.on_render(console=root_console)
                 context.present(root_console)
 
