@@ -142,7 +142,8 @@ class HostileEnemy(BaseAI):
                 flow = self.engine.pathing.player_flow 
                 path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
             else:
-                path = self.engine.pathing.path_along_flow(self.engine.pathing.random_flow, self.entity.x, self.entity.y)
+                flow = self.engine.pathing.random_flow + self.engine.pathing.squirrel_flow
+                path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
         else:
             flow = self.engine.pathing.mushroom_flow + self.engine.pathing.token_flow
             path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
@@ -166,14 +167,14 @@ class Neutral(BaseAI):
         distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
         flow = self.engine.pathing.random_flow
-        if random.random() > 0.5:
+        if random.random() > 0.1:
             flow = self.engine.pathing.mushroom_flow
         path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
 
         if path:
             dest_x, dest_y = path.pop(0)
             target = self.engine.game_map.get_actor_at_location(dest_x, dest_y)
-            if target and (target.name == "Mushroom" or self.entity.fighter.hp < self.entity.fighter.max_hp):
+            if target and ("Mushroom" in target.name or self.entity.fighter.hp < self.entity.fighter.max_hp):
                 return BumpAction(
                     self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
                 ).perform()
@@ -199,7 +200,7 @@ class RangedHostileEnemy(BaseAI):
         spell = self.entity.magic.spell_inventory.ranged_spell
         if self.spell_fn:
             spell = self.spell_fn(self.entity)
-        if spell and spell.can_cast(self.entity.inventory):
+        if self.engine.game_map.visible[self.entity.x, self.entity.y] and spell and spell.can_cast(self.entity.inventory):
             range = spell.attributes.get("range", 0)
             if distance <= 2:
                 path = self.engine.pathing.path_along_flow(self.engine.pathing.anti_player_flow, self.entity.x, self.entity.y)

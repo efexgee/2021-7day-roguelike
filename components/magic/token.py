@@ -227,6 +227,8 @@ class BeamOf(Token):
             damage = 5
         elif material == "ice":
             damage = 5
+        elif material == "gnawing teeth":
+            damage = 0.1
         elif material == "wall":
             damage = 0
         if scale == "small":

@@ -43,6 +43,7 @@ enemy_chances: Dict[int, List[Tuple[Entity, int]]] = {
         (entity_factories.mushroom, 100)],
     2: [(entity_factories.giant_rat, 50)],
     3: [(entity_factories.troll, 15),
+        (entity_factories.woody_mushroom, 100),
         (entity_factories.fire_elem, 5),
         (entity_factories.giant_rat, 0)],
     5: [(entity_factories.troll, 30),

@@ -158,3 +158,19 @@ def fill_shared_grimoire():
             [2, 3, 1],
         ]
     )
+    SHARED_GRIMOIRE["squirrel_bump_spell"] = Spell(
+        [
+            AllActors(),
+            MeleeRange(),
+            MadeOfWhatever("gleaming silver marble", "gnawing teeth"),
+            Stupendous(),
+            BeamOf(),
+        ],
+        [
+            [],
+            [0],
+            [],
+            [],
+            [2, 3, 1],
+        ]
+    )
