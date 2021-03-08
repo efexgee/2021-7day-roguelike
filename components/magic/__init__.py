@@ -52,6 +52,8 @@ class Spell:
             return f"{attributes.get('scale', 'small')} {attributes.get('spell_shape')} of {attributes.get('material')}"
         elif attributes.get("is_heal"):
             return f"{attributes.get('scale', 'small')} heal"
+        elif attributes.get("is_summon"):
+            return f"summon a {attributes['creature']}"
 
     def can_cast(self, inventory) -> bool:
         return self.prepare_from_inventory(inventory, True) is not None
@@ -142,6 +144,9 @@ class Magic(BaseComponent):
         self.spell_inventory.heal_spell = choice(SHARED_GRIMOIRE["small_heal"])
         self.remember_spell_tokens(self.spell_inventory.heal_spell)
 
+        self.spell_inventory.summon_spell = choice(SHARED_GRIMOIRE["small_summon"])
+        self.remember_spell_tokens(self.spell_inventory.summon_spell)
+
         self.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["bump_spell_free"]
 
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
@@ -150,6 +155,8 @@ class Magic(BaseComponent):
                 return self.cast_spell(self.spell_inventory.bump_spell, (target.x, target.y))
             elif self.spell_inventory.bump_spell_free:
                 return self.cast_spell(self.spell_inventory.bump_spell_free, (target.x, target.y), True)
+        elif self.spell_inventory.bump_spell_free:
+            return self.cast_spell(self.spell_inventory.bump_spell_free, (target.x, target.y), True)
 
     def assure_castability(self, spell, times):
         if spell:

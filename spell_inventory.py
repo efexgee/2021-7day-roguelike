@@ -7,6 +7,7 @@ class SpellInventory:
         self.bump_spell = None
         self.bump_spell_free = None
         self.heal_spell = None
+        self.summon_spell = None
         self.other_spell = []
         self.parent = parent
 
@@ -26,14 +27,19 @@ class SpellInventory:
             count = self.heal_spell.max_casts(self.parent.parent.inventory)
             console.print(x=x, y=y + y_offset, string=f"{self.heal_spell.name()}: {count}", fg=color.white)
             y_offset -= 1
+        if self.summon_spell:
+            count = self.summon_spell.max_casts(self.parent.parent.inventory)
+            console.print(x=x, y=y + y_offset, string=f"{self.summon_spell.name()}: {count}", fg=color.white)
+            y_offset -= 1
         if self.other_spell:
             count = self.other_spell[0].max_casts(self.parent.parent.inventory)
             console.print(x=x, y=y + y_offset, string=f"{self.other_spell[0].name()}: {count}", fg=color.white)
+            y_offset -= 1
 
     def all_spells(self):
         return [s for s in [
             self.ranged_spell,
             self.bump_spell,
             self.heal_spell,
-            self.other_spell,
-        ] if s]
+            self.summon_spell,
+        ] + self.other_spell if s]

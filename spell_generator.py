@@ -20,6 +20,30 @@ def random_small_ranged():
         return True
     return random_spell_with_constraints(is_valid)
 
+def random_small_construction():
+    def is_valid(spell):
+        if len(spell.tokens) > 6:
+            return False
+        attributes = spell.attributes
+        if not attributes.get("requires_target", False):
+            return False
+        if attributes.get("range", 0) < 4 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
+            return False
+        if attributes.get("material") != "wall" and attributes.get("material") != "screaming elemental void":
+            return False
+        return True
+    return random_spell_with_constraints(is_valid)
+
+def random_small_summon():
+    def is_valid(spell):
+        if len(spell.tokens) > 6:
+            return False
+        attributes = spell.attributes
+        if not attributes.get("is_summon", False):
+            return False
+        return True
+    return random_spell_with_constraints(is_valid)
+
 def random_small_bump():
     def is_valid(spell):
         if len(spell.tokens) > 6:
@@ -102,6 +126,8 @@ def random_spell(all_tokens, cache=None):
                          break
              if target is not None:
                  ids.append(target)
+             elif input_type != "caster":
+                 raise
          connections.append(ids)
          tokens.append(token)
     try:
@@ -115,12 +141,29 @@ def fill_shared_grimoire():
     SHARED_GRIMOIRE["small_ranged"] = [random_small_ranged() for _ in range(10)]
     SHARED_GRIMOIRE["small_bump"] = [random_small_bump() for _ in range(10)]
     SHARED_GRIMOIRE["small_heal"] = [random_small_heal() for _ in range(10)]
+    SHARED_GRIMOIRE["small_summon"] = [random_small_summon() for _ in range(10)]
     SHARED_GRIMOIRE["bump_spell_free"] = Spell(
         [
             AllActors(),
             MeleeRange(),
             MadeOfPoop(),
             Small(),
+            BeamOf(),
+        ],
+        [
+            [],
+            [0],
+            [],
+            [],
+            [2, 3, 1],
+        ]
+    )
+    SHARED_GRIMOIRE["squirrel_bump_spell"] = Spell(
+        [
+            AllActors(),
+            MeleeRange(),
+            MadeOfWhatever("gleaming silver marble", "gnawing teeth"),
+            Stupendous(),
             BeamOf(),
         ],
         [

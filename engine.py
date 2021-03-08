@@ -13,6 +13,7 @@ import render_functions
 from tile_types import TileLabel
 
 from pathing import PathingCache
+from spell_visualization import SpellVisualizationOverlay
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -29,6 +30,7 @@ class Engine:
         self.player = player
         self.familiar = familiar
         self.pathing = PathingCache(self)
+        self.spell_overlay = SpellVisualizationOverlay(self)
 
     def check_environment_interactions(self) -> None:
         for actor in set(self.game_map.actors):

@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI
+from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI, Neutral
 from components import consumable, equippable
 from components.equipment import Equipment
 from components.fighter import Fighter
@@ -7,8 +7,8 @@ from components.level import Level
 from components.magic import Magic
 from components.magic.token import *
 from entity import Actor, Item
-from spell_generator import random_spell_with_constraints
-from random import gammavariate
+from spell_generator import random_spell_with_constraints, SHARED_GRIMOIRE
+from random import gammavariate, random
 
 player = Actor(
     char="@",
@@ -55,21 +55,37 @@ def orc():
   return [o]
 
 
-def individual_mushroom():
-    return Actor(
-    char="m",
-    color=(63, 127, 63),
-    name="Mushroom",
-    ai_cls=lambda parent: SpawnerAI(parent, 0.01, individual_mushroom),
-    equipment=Equipment(),
-    fighter=Fighter(hp=1, base_defense=0, base_power=3),
-    inventory=Inventory(),
-    magic=Magic(),
-    level=Level(xp_given=10),
-    )
+def individual_mushroom(woody_chance=0.1):
+    if random() < woody_chance:
+        return Actor(
+        char="m",
+        color=(127, 63, 63),
+        name="Woody Mushroom",
+        ai_cls=lambda parent: SpawnerAI(parent, 0.01, lambda: individual_mushroom(woody_chance+0.1)),
+        equipment=Equipment(),
+        fighter=Fighter(hp=100, base_defense=0, base_power=3, dmg_multipliers = {"gnawing teeth": 100}),
+        inventory=Inventory(),
+        magic=Magic(),
+        level=Level(xp_given=1),
+        )
+    else:
+        return Actor(
+        char="m",
+        color=(63, 63, 63),
+        name="Mushroom",
+        ai_cls=lambda parent: SpawnerAI(parent, 0.01, lambda: individual_mushroom(woody_chance-0.05)),
+        equipment=Equipment(),
+        fighter=Fighter(hp=1, base_defense=0, base_power=3),
+        inventory=Inventory(),
+        magic=Magic(),
+        level=Level(xp_given=1),
+        )
 
 def mushroom():
     return [individual_mushroom() for _ in range(0, 7)]
+
+def woody_mushroom():
+    return [individual_mushroom(0.9) for _ in range(0, 7)]
 
 def imp_spell(imp):
     def is_valid(spell):
@@ -155,3 +171,18 @@ def giant_rat():
         gr.magic.fill_default_spell_slots()
         rat_list.append(gr)
     return rat_list
+
+def squirrel():
+    sq = Actor(
+    char=".",
+    color=(127, 127, 0),
+    name="Squirrel (super harmless)",
+    ai_cls=Neutral,
+    equipment=Equipment(),
+    fighter=Fighter(hp=1, base_defense=2, base_power=3, dmg_multipliers={"fire": -0.2}),
+    magic=Magic(),
+    inventory=Inventory(),
+    level=Level(xp_given=175),
+    )
+    sq.magic.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["squirrel_bump_spell"]
+    return[sq]

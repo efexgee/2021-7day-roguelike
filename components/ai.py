@@ -132,12 +132,20 @@ class HostileEnemy(BaseAI):
         dy = target.y - self.entity.y
         distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
-        path = None
-        if self.engine.game_map.visible[self.entity.x, self.entity.y]:
-            if distance <= 1:
-                return MeleeAction(self.entity, dx, dy).perform()
+        if distance <= 1:
+            return MeleeAction(self.entity, dx, dy).perform()
 
-            flow = self.engine.pathing.player_flow 
+        path = None
+        spell = self.entity.magic.spell_inventory.bump_spell
+        if spell and spell.can_cast(self.entity.inventory):
+            if self.engine.game_map.visible[self.entity.x, self.entity.y]:
+                flow = self.engine.pathing.player_flow 
+                path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
+            else:
+                flow = self.engine.pathing.random_flow + self.engine.pathing.squirrel_flow
+                path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
+        else:
+            flow = self.engine.pathing.mushroom_flow + self.engine.pathing.token_flow
             path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
 
         if path:
@@ -145,6 +153,35 @@ class HostileEnemy(BaseAI):
             return BumpAction(
                 self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
             ).perform()
+
+        return WaitAction(self.entity).perform()
+
+class Neutral(BaseAI):
+    def __init__(self, entity: Actor):
+        super().__init__(entity)
+
+    def perform(self) -> None:
+        target = self.engine.player
+        dx = target.x - self.entity.x
+        dy = target.y - self.entity.y
+        distance = max(abs(dx), abs(dy))  # Chebyshev distance.
+
+        flow = self.engine.pathing.random_flow
+        if random.random() > 0.1:
+            flow = self.engine.pathing.mushroom_flow
+        path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
+
+        if path:
+            dest_x, dest_y = path.pop(0)
+            target = self.engine.game_map.get_actor_at_location(dest_x, dest_y)
+            if target and ("Mushroom" in target.name or self.entity.fighter.hp < self.entity.fighter.max_hp):
+                return BumpAction(
+                    self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
+                ).perform()
+            else:
+                return MovementAction(
+                    self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
+                ).perform()
 
         return WaitAction(self.entity).perform()
 
@@ -163,7 +200,7 @@ class RangedHostileEnemy(BaseAI):
         spell = self.entity.magic.spell_inventory.ranged_spell
         if self.spell_fn:
             spell = self.spell_fn(self.entity)
-        if spell and spell.can_cast(self.entity.inventory):
+        if self.engine.game_map.visible[self.entity.x, self.entity.y] and spell and spell.can_cast(self.entity.inventory):
             range = spell.attributes.get("range", 0)
             if distance <= 2:
                 path = self.engine.pathing.path_along_flow(self.engine.pathing.anti_player_flow, self.entity.x, self.entity.y)

@@ -23,7 +23,7 @@ from components.magic import Spell
 from components.magic.token import *
 from spell_generator import fill_shared_grimoire
 
-from spell_generator import fill_shared_grimoire
+from spell_generator import fill_shared_grimoire, random_small_construction
 
 # Load the background image and remove the alpha channel.
 background_image = tcod.image.load("menu_background.png")[:, :, :3]
@@ -42,9 +42,12 @@ def new_game() -> Engine:
 
     player = copy.deepcopy(entity_factories.player)
     player.magic.fill_default_spell_slots()
+    player.magic.spell_inventory.other_spell.append(random_small_construction())
+    player.magic.assure_castability(player.magic.spell_inventory.other_spell[0], 10)
     player.magic.assure_castability(player.magic.spell_inventory.ranged_spell, 10)
     player.magic.assure_castability(player.magic.spell_inventory.bump_spell, 10)
     player.magic.assure_castability(player.magic.spell_inventory.heal_spell, 10)
+    player.magic.assure_castability(player.magic.spell_inventory.summon_spell, 10)
 
     familiar = copy.deepcopy(entity_factories.familiar)
 
