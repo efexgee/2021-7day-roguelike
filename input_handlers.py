@@ -591,6 +591,9 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_r:
             if player.magic.spell_inventory.other_spell:
                 action = cast_action(player, player.magic.spell_inventory.other_spell[0], self.engine)
+        elif key == tcod.event.K_s:
+            if player.magic.spell_inventory.summon_spell:
+                action = cast_action(player, player.magic.spell_inventory.summon_spell, self.engine)
         elif key == tcod.event.K_w:
             if player.magic.spell_inventory.other_spell:
                 spell = player.magic.spell_inventory.other_spell.pop()
