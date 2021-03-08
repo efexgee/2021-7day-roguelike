@@ -1,4 +1,6 @@
 from __future__ import annotations
+from collections import defaultdict
+import numpy as np
 
 from collections import Counter
 
@@ -19,20 +21,11 @@ if TYPE_CHECKING:
     from entity import Entity
 
 
-max_items_by_floor = [
-    (1, 1),
-    (4, 2),
-]
-
 max_monsters_by_floor = [
     (1, 2),
     (4, 3),
     (6, 5),
 ]
-
-item_chances: Dict[int, List[Tuple[Entity, int]]] = {
-}
-
 
 enemy_chances: Dict[int, List[Tuple[Entity, int]]] = {
     0: [(entity_factories.orc, 80),
@@ -43,6 +36,7 @@ enemy_chances: Dict[int, List[Tuple[Entity, int]]] = {
         (entity_factories.mushroom, 100)],
     2: [(entity_factories.giant_rat, 50)],
     3: [(entity_factories.troll, 15),
+        (entity_factories.squirrel, 0),
         (entity_factories.woody_mushroom, 100),
         (entity_factories.fire_elem, 5),
         (entity_factories.giant_rat, 0)],
@@ -116,6 +110,15 @@ class RectangularRoom:
         """Return the inner area of this room as a 2D array index."""
         return slice(self.x1 + 1, self.x2), slice(self.y1 + 1, self.y2)
 
+    def contains(self, x, y):
+        return (
+            self.x1 <= x
+            and self.x2 >= x
+            and self.y1 <= y
+            and self.y2 >= y
+        )
+
+
     def intersects(self, other: RectangularRoom) -> bool:
         """Return True if this room overlaps with another RectangularRoom."""
         return (
@@ -130,15 +133,8 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int,) 
     number_of_monsters = random.randint(
         0, get_max_value_for_floor(max_monsters_by_floor, floor_number)
     )
-    number_of_items = random.randint(
-        0, get_max_value_for_floor(max_items_by_floor, floor_number)
-    )
-
     monsters: List[Entity] = get_entities_at_random(
         enemy_chances, number_of_monsters, floor_number
-    )
-    items: List[Entity] = get_entities_at_random(
-        item_chances, number_of_items, floor_number
     )
 
     tokens = all_tokens()
@@ -151,7 +147,7 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, floor_number: int,) 
             token = random.choice(tokens)
             monster.inventory.add_token(token())
 
-    for entity in monsters + items:
+    for entity in monsters:
         x = random.randint(room.x1 + 1, room.x2 - 1)
         y = random.randint(room.y1 + 1, room.y2 - 1)
 
@@ -219,6 +215,7 @@ def generate_dungeon(
 
         else:  # All rooms after the first.
             # Dig out a tunnel between this room and the previous one.
+            touched_rooms = {len(rooms)}
             for x, y in tunnel_between(rooms[-1].center, new_room.center):
                 if (TileLabel(dungeon.tiles[x,y]["label"]).name == "Wall"):
                     dungeon.tiles[x, y] = floor
@@ -232,7 +229,28 @@ def generate_dungeon(
         # Finally, append the new room to the list.
         rooms.append(new_room)
 
+    if engine.game_world.current_floor == 3:
+        block_access((player.x, player.y), center_of_last_room, dungeon)
+
     dungeon.tiles[dungeon.downstairs_location] = down_stairs
     engine.familiar.spawn(dungeon, player.x+1, player.y)
 
     return dungeon
+
+
+def block_access(start, end, dungeon):
+    while True:
+        cost = np.array(dungeon.tiles["walkable"], dtype=np.int16)
+        for entity in dungeon.actors:
+            cost[entity.x, entity.y] = 0
+        graph = tcod.path.SimpleGraph(cost=cost, cardinal=2, diagonal=3)
+        pathfinder = tcod.path.Pathfinder(graph)
+        pathfinder.add_root(start)
+        path = pathfinder.path_to(end)[1:].tolist()
+
+        if not path:
+            return
+
+        i = path[len(path)//2]
+        entity = entity_factories.individual_mushroom(1.0)
+        entity.spawn(dungeon, i[0], i[1])
