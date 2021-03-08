@@ -20,6 +20,20 @@ def random_small_ranged():
         return True
     return random_spell_with_constraints(is_valid)
 
+def random_small_construction():
+    def is_valid(spell):
+        if len(spell.tokens) > 6:
+            return False
+        attributes = spell.attributes
+        if not attributes.get("requires_target", False):
+            return False
+        if attributes.get("range", 0) < 4 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
+            return False
+        if attributes.get("material") != "wall" and attributes.get("material") != "screaming elemental void":
+            return False
+        return True
+    return random_spell_with_constraints(is_valid)
+
 def random_small_summon():
     def is_valid(spell):
         if len(spell.tokens) > 6:

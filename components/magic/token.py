@@ -1,7 +1,10 @@
 from random import sample, shuffle, random, choice
+import math
 from inspect import signature
 from spell_visualization import AOECircle, BeamLine
 import entity_factories
+import tile_types
+from tcod.los import bresenham
 
 import color
 
@@ -164,6 +167,8 @@ class BallOf(Token):
             damage = 5
         elif material == "ice":
             damage = 5
+        elif material == "wall":
+            damage = 0
         radius = 0
         if scale == "small":
             radius = 1
@@ -183,11 +188,22 @@ class BallOf(Token):
         if targets:
             for target in targets:
                 context.engine.spell_overlay.push_effect(AOECircle(target, radius, (255, 0, 0)))
-                for actor in context.engine.game_map.actors:
-                    if actor.distance(target[0], target[1]) <= radius and context.engine.game_map.visible[target]:
-                        if not context.quiet:
-                            outcome_text = actor.fighter.damage(damage, material)
-                            context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} and {outcome_text}!")
+                for dx in range(-radius, radius+1):
+                    for dy in range(-radius, radius+1):
+                        if math.sqrt(dx*dx+dy*dy) <= radius:
+                            actor = context.engine.game_map.get_actor_at_location(target[0]+dx, target[1]+dy)
+                            if material == "screaming elemental void":
+                                x = target[0]+dx
+                                y = target[1]+dy
+                                if context.engine.game_map.tiles[x, y] == tile_types.wall:
+                                    context.engine.game_map.tiles[x, y] = tile_types.floor
+                            if material == "wall" and actor is None:
+                                context.engine.game_map.tiles[target[0]+dx, target[1]+dy] = tile_types.wall
+                            elif material != "wall":
+                                if actor:
+                                    if not context.quiet:
+                                        outcome_text = actor.fighter.damage(damage, material)
+                                        context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} and {outcome_text}!")
         elif not context.quiet:
             context.engine.message_log.add_message("nothing happens")
 
@@ -211,6 +227,8 @@ class BeamOf(Token):
             damage = 5
         elif material == "ice":
             damage = 5
+        elif material == "wall":
+            damage = 0
         if scale == "small":
             damage *= 1
         elif scale == "medium":
@@ -229,7 +247,14 @@ class BeamOf(Token):
         if targets:
             for target in targets:
                 actor = context.engine.game_map.get_actor_at_location(target[0], target[1])
-                if actor is not None:
+                if material == "screaming elemental void":
+                    for (tx, ty) in bresenham((context.caster.x, context.caster.y), target):
+                        if context.engine.game_map.tiles[tx, ty] == tile_types.wall:
+                            context.engine.game_map.tiles[tx, ty] = tile_types.floor
+                if actor is None and material == "wall":
+                    for (tx, ty) in bresenham((context.caster.x, context.caster.y), target):
+                        context.engine.game_map.tiles[tx, ty] = tile_types.wall
+                elif actor is not None and material != "wall":
                     context.engine.spell_overlay.push_effect(BeamLine((context.caster.x, context.caster.y), target, (0, 0, 255)))
                     if not context.quiet:
                         outcome_text = actor.fighter.damage(damage, material)
@@ -365,3 +390,7 @@ class MadeOfStrongCoffee(MadeOfWhatever):
 class MadeOfScreamingElementalVoid(MadeOfWhatever):
     def __init__(self):
         super().__init__("pink globule", "screaming elemental void")
+
+class MadeOfWall(MadeOfWhatever):
+    def __init__(self):
+        super().__init__("dusty globule", "wall")
