@@ -65,7 +65,7 @@ def individual_mushroom():
     fighter=Fighter(hp=1, base_defense=0, base_power=3),
     inventory=Inventory(),
     magic=Magic(),
-    level=Level(xp_given=1),
+    level=Level(xp_given=10),
     )
 
 def mushroom():
