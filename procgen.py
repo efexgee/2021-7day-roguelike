@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections import defaultdict
 import numpy as np
+import copy
 
 from collections import Counter
 
@@ -12,7 +13,7 @@ import tcod
 from entity import Item
 import entity_factories
 from game_map import GameMap
-from tile_types import floor, down_stairs, TileLabel
+from tile_types import floor, down_stairs, TileLabel, up_stairs
 from components.magic.token import all_tokens
 
 
@@ -37,9 +38,14 @@ enemy_chances: Dict[int, List[Tuple[Entity, int]]] = {
     2: [(entity_factories.giant_rat, 50)],
     3: [(entity_factories.troll, 15),
         (entity_factories.squirrel, 0),
+        (entity_factories.big_goblin_wizard, 10),
         (entity_factories.woody_mushroom, 100),
         (entity_factories.fire_elem, 5),
         (entity_factories.giant_rat, 0)],
+    4: [
+        (entity_factories.big_goblin_wizard, 20),
+        (entity_factories.squirrel, 100),
+       ],
     5: [(entity_factories.troll, 30),
         (entity_factories.fire_elem, 30)],
     7: [(entity_factories.troll, 60),
@@ -232,8 +238,15 @@ def generate_dungeon(
     if engine.game_world.current_floor == 3:
         block_access((player.x, player.y), center_of_last_room, dungeon)
 
-    dungeon.tiles[dungeon.downstairs_location] = down_stairs
-    engine.familiar.spawn(dungeon, player.x+1, player.y)
+    if engine.game_world.current_floor == 5:
+        entity = entity_factories.the_blender
+        entity.spawn(dungeon, dungeon.downstairs_location[0], dungeon.downstairs_location[1])
+        dungeon.downstairs_location = (1000000, 1000000)
+    else:
+        dungeon.tiles[dungeon.downstairs_location] = down_stairs
+
+    dungeon.tiles[player.x, player.y] = up_stairs
+    engine.familiar = engine.familiar.spawn(dungeon, player.x+1, player.y)
 
     return dungeon
 

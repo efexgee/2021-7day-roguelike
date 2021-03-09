@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from typing import Optional, Tuple, TYPE_CHECKING
+from tile_types import TileLabel
+import entity_factories
 
 import color
 import exceptions
 from components.magic import Spell
+from spell_generator import SHARED_GRIMOIRE
 from components.magic.token import *
 
 if TYPE_CHECKING:
@@ -96,18 +99,35 @@ class CastSpellAction(Action):
         self.caster.magic.cast_spell(self.spell, self.target)
 
 
-class TakeStairsAction(Action):
+class TakeDownStairsAction(Action):
     def perform(self) -> None:
         """
         Take the stairs, if any exist at the entity's location.
         """
-        if (self.entity.x, self.entity.y) == self.engine.game_map.downstairs_location:
-            self.engine.game_world.generate_floor()
+        if self.engine.game_map.tiles[self.entity.x, self.entity.y]['label'] == TileLabel.Downstairs:
+            self.engine.change_level(1)
             self.engine.message_log.add_message(
                 "You descend the staircase.", color.descend
             )
         else:
-            raise exceptions.Impossible("There are no stairs here.")
+            raise exceptions.Impossible("There are no down stairs here.")
+
+class TakeUpStairsAction(Action):
+    def perform(self) -> None:
+        """
+        Take the stairs, if any exist at the entity's location.
+        """
+        if self.engine.game_map.tiles[self.entity.x, self.entity.y]['label'] == TileLabel.Upstairs:
+            if self.engine.game_world.current_floor == 1:
+                if self.engine.player.name == "The Avatar of Bamulet":
+                    self.engine.player_failed = False
+                else:
+                    self.engine.player_failed = True
+
+            else:
+                self.engine.change_level(-1)
+        else:
+            raise exceptions.Impossible("There are no up stairs here.")
 
 
 class ActionWithDirection(Action):
@@ -164,6 +184,25 @@ class MovementAction(ActionWithDirection):
 
         for item in self.engine.game_map.items:
             if self.entity.x == item.x and self.entity.y == item.y:
+                if item.name == "The Blender of Bamulet":
+                    if self.entity is self.engine.familiar:
+                        return
+                    (x, y) = (self.entity.x, self.entity.y)
+                    self.engine.game_map.entities.remove(self.entity)
+                    if self.entity is self.engine.player:
+                        avatar = entity_factories.avatar_of_bamulet
+                        avatar.magic.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["avatar_spell"]
+                        self.engine.player = avatar.spawn(self.engine.game_map, x, y)
+                        self.engine.reveal_squirrels_true_nature()
+                        self.engine.message_log.add_message(f"The Avatar of Bamulet Arises! Return to the surface!")
+                    else:
+                       avatar = entity_factories.corrupt_avatar_of_bamulet
+                       avatar.magic.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["avatar_spell"]
+                       avatar.spawn(self.engine.game_map, x, y)
+                       self.engine.message_log.add_message(f"The Corrupted Avatar of Bamulet arises, all mortals beware!!")
+                    self.engine.game_map.entities.remove(item)
+                    return
+
                 if item.token:
                     for _ in range(0, item.count):
                         self.entity.inventory.add_token(item.token)

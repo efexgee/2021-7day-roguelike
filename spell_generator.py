@@ -74,6 +74,53 @@ def random_small_heal():
         return True
     return random_spell_with_constraints(is_valid)
 
+
+
+def random_large_ranged():
+    def is_valid(spell):
+        if len(spell.tokens) > 12:
+            return False
+        attributes = spell.attributes
+        if not attributes.get("requires_target", False):
+            return False
+        if attributes.get("range", 0) < 14 or attributes.get("range", 0) <= attributes.get("AOE_radius", 0):
+            return False
+        base_damage = attributes.get("base_damage", 0)
+        if base_damage > 50 or base_damage < 10:
+            return False
+        return True
+    return random_spell_with_constraints(is_valid)
+
+def random_large_bump():
+    def is_valid(spell):
+        if len(spell.tokens) > 12:
+            return False
+        attributes = spell.attributes
+        if not attributes.get("requires_target", False):
+            return False
+        if attributes.get("range", 0) != 1.5 or attributes.get("AOE_radius", 0) != 0:
+            return False
+        base_damage = attributes.get("base_damage", 0)
+        if base_damage > 20:
+            return False
+        return True
+    return random_spell_with_constraints(is_valid)
+
+def random_large_heal():
+    def is_valid(spell):
+        if len(spell.tokens) > 12:
+            return False
+        attributes = spell.attributes
+        if not attributes.get("targets_caster", False):
+            return False
+        if attributes.get("AOE_radius", 0) > 0:
+            return False
+        base_damage = attributes.get("base_damage", 0)
+        if base_damage < -50 or base_damage > -20:
+            return False
+        return True
+    return random_spell_with_constraints(is_valid)
+
 def random_spell_with_constraints(is_valid_fn, tokens=None):
     if tokens is None:
         tokens = [t() for t in all_tokens()]
@@ -142,6 +189,9 @@ def fill_shared_grimoire():
     SHARED_GRIMOIRE["small_bump"] = [random_small_bump() for _ in range(10)]
     SHARED_GRIMOIRE["small_heal"] = [random_small_heal() for _ in range(10)]
     SHARED_GRIMOIRE["small_summon"] = [random_small_summon() for _ in range(10)]
+    SHARED_GRIMOIRE["large_ranged"] = [random_large_ranged() for _ in range(10)]
+    SHARED_GRIMOIRE["large_bump"] = [random_large_bump() for _ in range(10)]
+    SHARED_GRIMOIRE["large_heal"] = [random_large_heal() for _ in range(10)]
     SHARED_GRIMOIRE["bump_spell_free"] = Spell(
         [
             AllActors(),
@@ -163,6 +213,22 @@ def fill_shared_grimoire():
             AllActors(),
             MeleeRange(),
             MadeOfWhatever("gleaming silver marble", "gnawing teeth"),
+            Stupendous(),
+            BeamOf(),
+        ],
+        [
+            [],
+            [0],
+            [],
+            [],
+            [2, 3, 1],
+        ]
+    )
+    SHARED_GRIMOIRE["avatar_spell"] = Spell(
+        [
+            AllActors(),
+            MeleeRange(),
+            MadeOfScreamingElementalVoid(),
             Stupendous(),
             BeamOf(),
         ],

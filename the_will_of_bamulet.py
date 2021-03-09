@@ -1,0 +1,2 @@
+class SmitedByBamulet(Exception):
+    pass

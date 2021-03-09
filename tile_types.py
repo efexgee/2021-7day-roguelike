@@ -8,6 +8,7 @@ class TileLabel(IntEnum):
     Floor = auto()
     Wall = auto()
     Downstairs = auto()
+    Upstairs = auto()
     Fire = auto()
     Acid = auto()
 
@@ -71,6 +72,14 @@ down_stairs = new_tile(
     transparent=True,
     dark=(ord(">"), (0, 0, 100), (50, 50, 150)),
     light=(ord(">"), (255, 255, 255), (200, 180, 50)),
+    damage=0,
+)
+up_stairs = new_tile(
+    label=TileLabel.Upstairs,
+    walkable=True,
+    transparent=True,
+    dark=(ord("<"), (0, 0, 100), (50, 50, 150)),
+    light=(ord("<"), (255, 255, 255), (200, 180, 50)),
     damage=0,
 )
 fire = new_tile(
