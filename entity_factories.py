@@ -46,7 +46,7 @@ def orc():
     name="Orc",
     ai_cls=HostileEnemy,
     equipment=Equipment(),
-    fighter=Fighter(hp=10, base_defense=0, base_power=3),
+    fighter=Fighter(hp=10, base_defense=0, base_power=3, dmg_multipliers = {"any": 0.0, "poop": 30.0}),
     inventory=Inventory(),
     magic=Magic(),
     level=Level(xp_given=35),
@@ -58,7 +58,7 @@ def orc():
 def individual_mushroom(woody_chance=0.1):
     if random() < woody_chance:
         return Actor(
-        char="m",
+        char="M",
         color=(127, 63, 63),
         name="Woody Mushroom",
         ai_cls=lambda parent: SpawnerAI(parent, 0.01, lambda: individual_mushroom(woody_chance+0.1)),
@@ -130,7 +130,7 @@ def troll():
     name="Troll",
     ai_cls=HostileEnemy,
     equipment=Equipment(),
-    fighter=Fighter(hp=16, base_defense=1, base_power=4),
+    fighter=Fighter(hp=16, base_defense=1, base_power=4, dmg_multipliers={"any": 0.5,"fire": 2.0}),
     magic=Magic(),
     inventory=Inventory(),
     level=Level(xp_given=100),
