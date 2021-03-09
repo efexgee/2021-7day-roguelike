@@ -139,7 +139,9 @@ class Fighter(BaseComponent):
         This will check for resistances, etc. and may result in a heal.
         It will return string indicating the outcome.
         """
-        dmg_multiplier = self.dmg_multipliers.get(damage_type)
+        dmg_multiplier = self.dmg_multipliers.get("any")
+
+        dmg_multiplier = self.dmg_multipliers.get(damage_type, dmg_multiplier)
 
         if dmg_multiplier is None:
             return f"deals {self.decrease_hp(incoming_dmg)} damage"
