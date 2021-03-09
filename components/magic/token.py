@@ -202,8 +202,12 @@ class BallOf(Token):
                             elif material != "wall":
                                 if actor:
                                     if not context.quiet:
-                                        outcome_text = actor.fighter.damage(damage, material)
-                                        context.engine.message_log.add_message(f"A {scale} ball of {material} hits {actor.name} and {outcome_text}!")
+                                        outcome_message = f"A {scale} ball of {material} hits {actor.name} and "
+                                        outcome_message += actor.fighter.damage(damage, material)
+                                        if "Player" in outcome_message and "heals" in outcome_message:
+                                            context.engine.message_log.add_message(outcome_message, color.health_recovered)
+                                        else:
+                                            context.engine.message_log.add_message(outcome_message)
         elif not context.quiet:
             context.engine.message_log.add_message("nothing happens")
 
@@ -259,8 +263,12 @@ class BeamOf(Token):
                 elif actor is not None and material != "wall":
                     context.engine.spell_overlay.push_effect(BeamLine((context.caster.x, context.caster.y), target, (0, 0, 255)))
                     if not context.quiet:
-                        outcome_text = actor.fighter.damage(damage, material)
-                        context.engine.message_log.add_message(f"A {scale} beam of {material} hits {actor.name} and {outcome_text}!")
+                        outcome_message = f"A {scale} beam of {material} hits {actor.name} and "
+                        outcome_message += actor.fighter.damage(damage, material)
+                        if "Player" in outcome_message and "heals" in outcome_message:
+                            context.engine.message_log.add_message(outcome_message, color.health_recovered)
+                        else:
+                            context.engine.message_log.add_message(outcome_message)
                 elif not context.quiet:
                     context.engine.message_log.add_message(f"A {scale} beam of {material} hits the ground, acomplishing nothing")
         elif not context.quiet:

@@ -93,7 +93,7 @@ class Fighter(BaseComponent):
                 y=y,
                 char = "~",
                 color = (255, 0, 255),
-                name = "A spell",
+                name = "spell",
                 spell = spell,
             )
             self.engine.game_map.queue_add_entity(item)
