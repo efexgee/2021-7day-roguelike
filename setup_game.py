@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from collections import Counter
 
+from the_will_of_bamulet import SmitedByBamulet
+
 import copy
 import lzma
 import pickle
@@ -63,8 +65,7 @@ def new_game() -> Engine:
         map_height=map_height,
     )
 
-    engine.game_world.generate_floor()
-    engine.update_fov()
+    engine.change_level(1)
 
     engine.message_log.add_message(
         "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
@@ -85,52 +86,62 @@ class MainMenu(input_handlers.BaseEventHandler):
     """Handle the main menu rendering and input."""
 
     def on_render(self, console: tcod.Console) -> None:
-        """Render the main menu on a background image."""
-        console.draw_semigraphics(background_image, 0, 0)
-
         console.print(
             console.width // 2,
             console.height // 2 - 4,
-            "TOMBS OF THE ANCIENT KINGS",
+            "Quest for the Blender of Bamulet",
             fg=color.menu_title,
             alignment=tcod.CENTER,
         )
         console.print(
             console.width // 2,
-            console.height - 2,
-            "By (Your name here)",
-            fg=color.menu_title,
+            console.height // 2 - 3,
+            "or an exercise in squirrels",
+            fg=color.menu_text,
             alignment=tcod.CENTER,
         )
 
         menu_width = 24
-        for i, text in enumerate(
-            ["[N] Play a new game", "[C] Continue last game", "[Q] Quit"]
-        ):
-            console.print(
-                console.width // 2,
-                console.height // 2 - 2 + i,
-                text.ljust(menu_width),
-                fg=color.menu_text,
-                bg=color.black,
-                alignment=tcod.CENTER,
-                bg_blend=tcod.BKGND_ALPHA(64),
-            )
+        console.print(
+            console.width // 2,
+            console.height // 2 - 1,
+            "Any key to begin...".ljust(menu_width),
+            fg=color.menu_text,
+            bg=color.black,
+            alignment=tcod.CENTER,
+            bg_blend=tcod.BKGND_ALPHA(64),
+        )
 
     def ev_keydown(
         self, event: tcod.event.KeyDown
     ) -> Optional[input_handlers.BaseEventHandler]:
-        if event.sym in (tcod.event.K_q, tcod.event.K_ESCAPE):
-            raise SystemExit()
-        elif event.sym == tcod.event.K_c:
-            try:
-                return input_handlers.MainGameEventHandler(load_game("savegame.sav"))
-            except FileNotFoundError:
-                return input_handlers.PopupMessage(self, "No saved game to load.")
-            except Exception as exc:
-                traceback.print_exc()  # Print to stderr.
-                return input_handlers.PopupMessage(self, f"Failed to load save:\n{exc}")
-        elif event.sym == tcod.event.K_n:
-            return input_handlers.MainGameEventHandler(new_game())
+        return input_handlers.MainGameEventHandler(new_game())
 
-        return None
+class EndGameFail(input_handlers.BaseEventHandler):
+    def on_render(self, console: tcod.Console) -> None:
+        console.print(
+            console.width // 2,
+            console.height // 2 - 4,
+            "You return to the surface without The Blender. Bamulet punishes you thusly...",
+            fg=color.menu_title,
+            alignment=tcod.CENTER,
+        )
+
+    def ev_keydown(
+        self, event: tcod.event.KeyDown
+    ) -> Optional[input_handlers.BaseEventHandler]:
+        raise SmitedByBamulet
+
+class EndGameSuccess(input_handlers.BaseEventHandler):
+    def on_render(self, console: tcod.Console) -> None:
+        console.print(
+            console.width // 2,
+            console.height // 2 - 4,
+            "You return to the surface with The Blender. Bamulet is pleased. A great feast of squirrels is held.",
+            fg=color.menu_title,
+            alignment=tcod.CENTER,
+        )
+    def ev_keydown(
+        self, event: tcod.event.KeyDown
+    ) -> Optional[input_handlers.BaseEventHandler]:
+        raise SystemExit(0)

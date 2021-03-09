@@ -149,6 +149,22 @@ class Magic(BaseComponent):
 
         self.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["bump_spell_free"]
 
+    def fill_advanced_spell_slots(self):
+        from spell_generator import SHARED_GRIMOIRE
+        self.spell_inventory.ranged_spell = choice(SHARED_GRIMOIRE["large_ranged"])
+        self.remember_spell_tokens(self.spell_inventory.ranged_spell)
+
+        self.spell_inventory.bump_spell = choice(SHARED_GRIMOIRE["large_bump"])
+        self.remember_spell_tokens(self.spell_inventory.bump_spell)
+
+        self.spell_inventory.heal_spell = choice(SHARED_GRIMOIRE["large_heal"])
+        self.remember_spell_tokens(self.spell_inventory.heal_spell)
+
+        self.spell_inventory.summon_spell = choice(SHARED_GRIMOIRE["small_summon"])
+        self.remember_spell_tokens(self.spell_inventory.summon_spell)
+
+        self.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["bump_spell_free"]
+
     def cast_bump_spell(self, target: Actor) -> Optional[ActionOrHandler]:
         if self.spell_inventory.bump_spell is not None:
             if self.spell_inventory.bump_spell.can_cast(self.parent.inventory):
@@ -178,7 +194,7 @@ class Magic(BaseComponent):
             prepared_spell = PreparedSpell(spell)
         if prepared_spell is not None:
             context = Context(self.parent, self.engine, target)
-            if self.parent.name == "Player":
+            if self.parent is self.engine.player:
                 self.engine.message_log.add_message(
                     "You cast a spell:", color.magic
                 )
@@ -187,7 +203,7 @@ class Magic(BaseComponent):
                     f"{self.parent.name} casts a spell:", color.magic
                 )
             prepared_spell.cast(context)
-        elif self.parent.name == "Player":
+        elif self.parent is self.engine.player:
             self.engine.message_log.add_message(
                 "You don't have the right tokens to cast that spell", color.impossible
             )

@@ -156,6 +156,31 @@ class HostileEnemy(BaseAI):
 
         return WaitAction(self.entity).perform()
 
+class CorruptedAvatar(BaseAI):
+    def __init__(self, entity: Actor):
+        super().__init__(entity)
+
+    def perform(self) -> None:
+        target = self.engine.player
+        dx = target.x - self.entity.x
+        dy = target.y - self.entity.y
+        distance = max(abs(dx), abs(dy))  # Chebyshev distance.
+
+        if distance <= 1:
+            return MeleeAction(self.entity, dx, dy).perform()
+
+
+        flow = self.engine.pathing.player_flow 
+        path = self.engine.pathing.path_along_flow(flow, self.entity.x, self.entity.y)
+
+        if path:
+            dest_x, dest_y = path.pop(0)
+            return BumpAction(
+                self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
+            ).perform()
+
+        return WaitAction(self.entity).perform()
+
 class Neutral(BaseAI):
     def __init__(self, entity: Actor):
         super().__init__(entity)

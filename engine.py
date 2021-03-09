@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import defaultdict
 
 import lzma
 import pickle
@@ -15,9 +16,8 @@ from tile_types import TileLabel
 from pathing import PathingCache
 from spell_visualization import SpellVisualizationOverlay
 
-if TYPE_CHECKING:
-    from entity import Actor
-    from game_map import GameMap, GameWorld
+from entity import Actor
+from game_map import GameMap, GameWorld
 
 
 class Engine:
@@ -31,6 +31,24 @@ class Engine:
         self.familiar = familiar
         self.pathing = PathingCache(self)
         self.spell_overlay = SpellVisualizationOverlay(self)
+        self.player_failed = None
+        self.persisted_levels = {}
+
+    def change_level(self, delta):
+        if self.game_world.current_floor > 0:
+            self.persisted_levels[self.game_world.current_floor] = (self.player.x, self.player.y, self.game_map)
+        new_level = self.game_world.current_floor + delta
+        self.game_world.current_floor = new_level
+        if new_level not in self.persisted_levels:
+            self.game_world.generate_floor()
+            self.update_fov()
+        else:
+            (x, y, self.game_map) = self.persisted_levels[new_level]
+            self.player.x = x
+            self.player.y = y
+            self.player.parent = self.game_map
+            self.game_map.entities.add(self.player)
+            self.update_fov()
 
     def check_environment_interactions(self) -> None:
         for actor in set(self.game_map.actors):
@@ -46,6 +64,58 @@ class Engine:
                     f"{actor.name} is standing in {env_hazard} which {outcome_text}.",
                     message_color
                 )
+
+    def reveal_squirrels_true_nature(self):
+        from components.ai import RangedHostileEnemy
+        from components.equipment import Equipment
+        from components.fighter import Fighter
+        from components.inventory import Inventory
+        from components.level import Level
+        from components.magic import Magic
+        from entity import Actor, Item
+        import entity_factories
+        import copy
+        sq = Actor(
+        char=".",
+        color=(127, 127, 0),
+        name="Secret Squirrel Cultist of Blamulet, Bamulet's Feckless Cousin (not harmless)",
+        ai_cls=RangedHostileEnemy,
+        equipment=Equipment(),
+        fighter=Fighter(hp=10, base_defense=2, base_power=3, dmg_multipliers={"fire": -0.2}),
+        magic=Magic(),
+        inventory=Inventory(),
+        level=Level(xp_given=175),
+        )
+        sq.magic.fill_advanced_spell_slots()
+        sq.magic.assure_castability(sq.magic.spell_inventory.ranged_spell, 10)
+        sq.magic.assure_castability(sq.magic.spell_inventory.bump_spell, 10)
+        sq.magic.assure_castability(sq.magic.spell_inventory.heal_spell, 10)
+        def squirrel_cultist():
+            return[sq]
+        entity_factories.squirrel = squirrel_cultist
+        to_remove = set()
+        to_add = set()
+        for (i, entity) in enumerate(self.game_map.entities):
+            if entity.name == "Squirrel (super harmless)":
+                sq = copy.deepcopy(sq)
+                sq.x = entity.x
+                sq.y = entity.y
+                sq.parent = self.game_map
+                to_remove.add(entity)
+                to_add.add(sq)
+        self.game_map.entities = self.game_map.entities.difference(to_remove).union(to_add)
+        for (x, y, gm) in self.persisted_levels.values():
+            to_remove = set()
+            to_add = set()
+            for (i, entity) in enumerate(gm.entities):
+                if entity.name == "Squirrel (super harmless)":
+                    sq = copy.deepcopy(sq)
+                    sq.x = entity.x
+                    sq.y = entity.y
+                    sq.parent = gm
+                    gm.entities[i] = sq
+            gm.entitie = gm.entities.difference(to_remove).union(to_add)
+
 
     def handle_enemy_turns(self) -> None:
         for entity in set(self.game_map.actors) - {self.player}:

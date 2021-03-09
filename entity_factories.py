@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI, Neutral
+from components.ai import HostileEnemy, RangedHostileEnemy, DummyAI, Familiar, SpawnerAI, Neutral, CorruptedAvatar
 from components import consumable, equippable
 from components.equipment import Equipment
 from components.fighter import Fighter
@@ -123,6 +123,21 @@ def goblin_wizard():
     g.magic.fill_default_spell_slots()
     return [g]
 
+def big_goblin_wizard():
+    g = Actor(
+    char="g",
+    color=(63, 127, 63),
+    name="Goblin Wizard (of extraordinary wisdom)",
+    ai_cls=lambda parent: RangedHostileEnemy(parent),
+    equipment=Equipment(),
+    fighter=Fighter(hp=25, base_defense=0, base_power=3),
+    inventory=Inventory(),
+    magic=Magic(),
+    level=Level(xp_given=35),
+    )
+    g.magic.fill_advanced_spell_slots()
+    return [g]
+
 def troll():
     t = Actor(
     char="T",
@@ -186,3 +201,34 @@ def squirrel():
     )
     sq.magic.spell_inventory.bump_spell_free = SHARED_GRIMOIRE["squirrel_bump_spell"]
     return[sq]
+
+
+the_blender = Item(
+    char = "U",
+    color = (0, 255, 0),
+    name = "The Blender of Bamulet",
+)
+
+avatar_of_bamulet = Actor(
+char="U",
+color=(0, 255, 0),
+name="The Avatar of Bamulet",
+ai_cls=Neutral,
+equipment=Equipment(),
+fighter=Fighter(hp=100, base_defense=0, base_power=3, dmg_multipliers = {"gnawing teeth": 10}),
+magic=Magic(),
+inventory=Inventory(),
+level=Level(xp_given=175),
+)
+
+corrupt_avatar_of_bamulet = Actor(
+char="U",
+color=(255, 0, 255),
+name="The Corrupted Avatar of Bamulet",
+ai_cls=CorruptedAvatar,
+equipment=Equipment(),
+fighter=Fighter(hp=100, base_defense=0, base_power=3, dmg_multipliers = {"gnawing teeth": 10}),
+magic=Magic(),
+inventory=Inventory(),
+level=Level(xp_given=175),
+)

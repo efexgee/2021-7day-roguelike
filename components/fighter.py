@@ -9,6 +9,7 @@ from entity import Item
 import color
 from components.base_component import BaseComponent
 from render_order import RenderOrder
+import entity_factories
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -69,6 +70,14 @@ class Fighter(BaseComponent):
             self.parent.ai = None
             self.parent.name = f"remains of {self.parent.name}"
             self.parent.render_order = RenderOrder.CORPSE
+        elif self.parent.name == "The Corrupted Avatar of Bamulet":
+            blender = entity_factories.the_blender
+            blender.x = self.parent.x
+            blender.y = self.parent.y
+            self.engine.game_map.queue_add_entity(blender)
+            death_message = f"The Corrupted Avatar is dead!!"
+            death_message_color = color.enemy_die
+            self.parent.ai = None
         else:
             death_message = f"{self.parent.name} is dead!"
             death_message_color = color.enemy_die
@@ -102,7 +111,6 @@ class Fighter(BaseComponent):
 
         self.engine.message_log.add_message(death_message, death_message_color)
 
-        self.engine.player.level.add_xp(self.parent.level.xp_given)
 
     def increase_hp(self, amount: int) -> int:
         """Heal the Fighter
